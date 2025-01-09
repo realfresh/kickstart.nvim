@@ -140,6 +140,7 @@ config_keybinds()
 
 if vim.g.neovide then
   -- vim.o.guifont = 'CommitMono Nerd Font:h14.5'
+  -- vim.o.guifont = 'Maple Mono NF:h14.5'
   vim.g.neovide_scale_factor = 1.0
   vim.opt.linespace = 6
 

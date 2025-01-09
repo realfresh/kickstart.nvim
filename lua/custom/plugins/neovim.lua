@@ -11,21 +11,132 @@ local which_key_spec = {
   -- { '<leader>w', group = '[W]orkspace' },
 }
 
-return {
-  -- Appearance: Theme
-  {
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
-    init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+local color_scheme = 'kanagawa-wave'
 
-      -- You can configure highlights by doing something like:
+return {
+  --------------------
+  ---    THEMES    ---
+  --------------------
+
+  {
+    'rebelot/kanagawa.nvim',
+    enabled = true,
+    priority = 1000,
+    config = function()
+      local dragon_colors = require('kanagawa.colors').setup { theme = 'dragon' }
+
       vim.cmd.hi 'Comment gui=none'
+
+      require('kanagawa').setup {
+        -- https://github.com/rebelot/kanagawa.nvim?tab=readme-ov-file#configuration
+        compile = false, -- enable compiling the colorscheme
+        undercurl = true, -- enable undercurls
+        commentStyle = { italic = true },
+        functionStyle = {},
+        keywordStyle = { italic = true },
+        statementStyle = { bold = true },
+        typeStyle = {},
+        transparent = false, -- do not set background color
+        dimInactive = false, -- dim inactive window `:h hl-NormalNC`
+        terminalColors = true, -- define vim.g.terminal_color_{0,17}
+        colors = { -- add/modify theme and palette colors
+          palette = {},
+          theme = {
+            wave = {
+              ui = dragon_colors.theme.ui,
+              vcs = dragon_colors.theme.vcs,
+              diff = dragon_colors.theme.diff,
+              diag = dragon_colors.theme.diag,
+              term = dragon_colors.theme.term,
+              -- ui = {
+              --  bg_m3 = dragon_colors.theme.ui.bg_m3,
+              --  bg_m2 = dragon_colors.theme.ui.bg_m2,
+              --  bg_m1 = dragon_colors.theme.ui.bg_m1,
+              --  bg = dragon_colors.theme.ui.bg,
+              --  bg_p1 = dragon_colors.theme.ui.bg_p1,
+              --  bg_p2 = dragon_colors.theme.ui.bg_p2,
+              -- },
+            },
+            lotus = {},
+            dragon = {},
+            all = {},
+          },
+        },
+        overrides = function(colors) -- add/modify highlights
+          return {}
+        end,
+        theme = 'wave',
+        background = {
+          dark = 'wave',
+          light = 'lotus',
+        },
+      }
     end,
   },
+
+  {
+    'comfysage/evergarden',
+    enabled = true,
+    priority = 1000,
+    opts = {
+      -- https://github.com/comfysage/evergarden?tab=readme-ov-file#configuration
+      transparent_background = true,
+      variant = 'hard', -- 'hard'|'medium'|'soft'
+      overrides = {}, -- add custom overrides
+    },
+  },
+
+  {
+    'catppuccin/nvim',
+    enabled = true,
+    name = 'catppuccin',
+    priority = 1000,
+    opts = {
+      -- https://github.com/catppuccin/nvim?tab=readme-ov-file#configuration
+    },
+  },
+
+  -- Themes: Default
+  {
+    'folke/tokyonight.nvim',
+    enabled = true,
+    priority = 1000, -- Make sure to load this before all the other start plugins.
+    init = function()
+      -- 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+      -- vim.cmd.colorscheme 'tokyonight-night'
+      -- You can configure highlights by doing something like:
+      -- vim.cmd.hi 'Comment gui=none'
+    end,
+  },
+
+  -- Theme Switcher
+  {
+    'zaldih/themery.nvim',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      require('themery').setup {
+        livepreview = true,
+        themes = {
+          'tokyonight-night',
+          'tokyonight-moon',
+          'kanagawa-wave',
+          'kanagawa-lotus',
+          'kanagawa-dragon',
+          'evergarden-soft',
+          'evergarden-medium',
+          'evergarden-hard',
+          'catppuccin-latte',
+          'catppuccin-frappe',
+          'catppuccin-macchiato',
+          'catppuccin-mocha',
+        },
+      }
+      vim.cmd.colorscheme(color_scheme)
+    end,
+  },
+
+  ------------------------------------------
 
   -- Telescope: Fuzzy Finder (files, lsp, etc)
   {
