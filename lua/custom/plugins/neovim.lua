@@ -168,10 +168,11 @@ return {
       -- Document existing key chains
       spec = {
         { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
-        { '<leader>d', group = '[D]ocument' },
+        -- { '<leader>d', group = '[D]ocument' },
         { '<leader>r', group = '[R]ename' },
         { '<leader>s', group = '[S]earch' },
-        { '<leader>w', group = '[W]orkspace' },
+        -- { '<leader>w', group = '[W]orkspace' },
+        { '<leader>l', group = '[L]SP' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
@@ -215,11 +216,12 @@ return {
       },
     },
     keys = {
-      { '<leader>l', ':Legendary<CR>', desc = '[L]egendary menu' },
+      { '<leader>.', ':Legendary<CR>', desc = '[L]egendary menu' },
     },
   },
 
   -- Mini: Collection of various small independent plugins/modules
+
   {
     'echasnovski/mini.nvim',
     config = function()
@@ -255,86 +257,44 @@ return {
 
       -- ... and there is more!
       --  Check out: https://github.com/echasnovski/mini.nvim
+      -- require('mini.starter').setup {}
     end,
   },
 
-  --  Persisted: session management
+  --  Session management
   {
-    'olimorris/persisted.nvim',
-    lazy = false, -- make sure the plugin is always loaded at startup
-    keys = {
-      { '<leader>sp', ':Telescope persisted<CR>', desc = '[P]ersisted Sessions' },
+    'rmagatti/auto-session',
+    lazy = false,
+
+    ---enables autocomplete for opts
+    ---@module "auto-session"
+    ---@type AutoSession.Config
+    opts = {
+      suppressed_dirs = { '/', '~/', '~/Downloads' },
+      -- log_level = 'debug',
+      session_lens = {
+        load_on_setup = true, -- Initialize on startup (requires Telescope)
+        theme_conf = { -- Pass through for Telescope theme options
+          -- layout_config = { -- As one example, can change width/height of picker
+          --   width = 0.8,    -- percent of window
+          --   height = 0.5,
+          -- },
+        },
+        previewer = false, -- File preview for session picker
+
+        mappings = {
+          -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
+          delete_session = { 'i', '<C-D>' },
+          alternate_session = { 'i', '<C-S>' },
+          copy_session = { 'i', '<C-Y>' },
+        },
+
+        session_control = {
+          control_dir = vim.fn.stdpath 'data' .. '/auto_session/', -- Auto session control dir, for control files, like alternating between two sessions with session-lens
+          control_filename = 'session_control.json', -- File name of the session control file
+        },
+      },
     },
-    config = function()
-      require('persisted').setup {
-        autostart = true, -- Automatically start the plugin on load?
-        autosave = true,
-        --[[ Defaults 
-        -- Function to determine if a session should be saved
-        ---@type fun(): boolean
-        should_save = function()
-          return true
-        end,
-        save_dir = vim.fn.expand(vim.fn.stdpath 'data' .. '/sessions/'), -- Directory where session files are saved
-        follow_cwd = true, -- Change the session file to match any change in the cwd?
-        use_git_branch = false, -- Include the git branch in the session file name?
-        autoload = false, -- Automatically load the session for the cwd on Neovim startup?
-
-        -- Function to run when `autoload = true` but there is no session to load
-        ---@type fun(): any
-        on_autoload_no_session = function() end,
-        allowed_dirs = {}, -- Table of dirs that the plugin will start and autoload from
-        ignored_dirs = {}, -- Table of dirs that are ignored for starting and autoloading
-        telescope = {
-          mappings = { -- Mappings for managing sessions in Telescope
-            copy_session = '<C-c>',
-            change_branch = '<C-b>',
-            delete_session = '<C-d>',
-          },
-          icons = { -- icons displayed in the Telescope picker
-            selected = ' ',
-            dir = '  ',
-            branch = ' ',
-          },
-        },
-        --]]
-      }
-
-      require('telescope').load_extension 'persisted'
-    end,
-  },
-
-  -- Dashboard
-  {
-    'nvimdev/dashboard-nvim',
-    event = 'VimEnter',
-    dependencies = { { 'nvim-tree/nvim-web-devicons' } },
-    config = function()
-      require('dashboard').setup {
-        config = {
-          packages = { enable = true }, -- show how many plugins neovim loaded
-          shortcut = {
-            -- action can be a function type
-            -- { desc = string, group = 'highlight group', key = 'shortcut key', action = 'action when you press key' },
-            {
-              desc = 'Projects',
-              group = 'Main',
-              key = 'P',
-              icon = ' ',
-              action = function()
-                vim.cmd 'Telescope persisted'
-              end,
-            },
-          },
-          -- limit how many projects list, action when you press key or enter it will run this action.
-          -- action can be a functino type, e.g.
-          -- action = func(path) vim.cmd('Telescope find_files cwd=' .. path) end
-          -- project = { enable = true, limit = 8, icon = 'your icon', label = '', action = '' },
-          -- mru = { enable = true, limit = 10, icon = 'your icon', label = '', cwd_only = false },
-          -- footer = {}, -- footer
-        },
-      }
-    end,
   },
 
   -- Gitsigns: Adds git signs to the gutter and utilities for managing changes
@@ -422,4 +382,96 @@ return {
       end,
     },
   },
+
+  --------------
+  -- Disabled --
+  --------------
+  {
+    'nvimdev/dashboard-nvim',
+    enabled = false,
+    event = 'VimEnter',
+    dependencies = { { 'nvim-tree/nvim-web-devicons' } },
+    config = function()
+      require('dashboard').setup {
+        config = {
+          packages = { enable = true }, -- show how many plugins neovim loaded
+          shortcut = {
+            -- action can be a function type
+            -- { desc = string, group = 'highlight group', key = 'shortcut key', action = 'action when you press key' },
+            {
+              desc = 'Projects',
+              group = 'Main',
+              key = 'P',
+              icon = ' ',
+              action = function()
+                vim.cmd 'Telescope persisted'
+              end,
+            },
+          },
+          -- limit how many projects list, action when you press key or enter it will run this action.
+          -- action can be a functino type, e.g.
+          -- action = func(path) vim.cmd('Telescope find_files cwd=' .. path) end
+          -- project = { enable = true, limit = 8, icon = 'your icon', label = '', action = '' },
+          -- mru = { enable = true, limit = 10, icon = 'your icon', label = '', cwd_only = false },
+          -- footer = {}, -- footer
+        },
+      }
+    end,
+  },
+  {
+    'olimorris/persisted.nvim',
+    enabled = false,
+    lazy = false, -- make sure the plugin is always loaded at startup
+    keys = {
+      { '<leader>sp', ':Telescope persisted<CR>', desc = '[P]ersisted Sessions' },
+    },
+    config = function()
+      require('persisted').setup {
+        autostart = true, -- Automatically start the plugin on load?
+        autosave = true,
+        --[[ Defaults 
+        -- Function to determine if a session should be saved
+        ---@type fun(): boolean
+        should_save = function()
+          return true
+        end,
+        save_dir = vim.fn.expand(vim.fn.stdpath 'data' .. '/sessions/'), -- Directory where session files are saved
+        follow_cwd = true, -- Change the session file to match any change in the cwd?
+        use_git_branch = false, -- Include the git branch in the session file name?
+        autoload = false, -- Automatically load the session for the cwd on Neovim startup?
+
+        -- Function to run when `autoload = true` but there is no session to load
+        ---@type fun(): any
+        on_autoload_no_session = function() end,
+        allowed_dirs = {}, -- Table of dirs that the plugin will start and autoload from
+        ignored_dirs = {}, -- Table of dirs that are ignored for starting and autoloading
+        telescope = {
+          mappings = { -- Mappings for managing sessions in Telescope
+            copy_session = '<C-c>',
+            change_branch = '<C-b>',
+            delete_session = '<C-d>',
+          },
+          icons = { -- icons displayed in the Telescope picker
+            selected = ' ',
+            dir = '  ',
+            branch = ' ',
+          },
+        },
+        --]]
+      }
+
+      require('telescope').load_extension 'persisted'
+    end,
+  },
+
+  --[[ {
+    'echasnovski/mini.starter',
+    version = false,
+    event = 'VimEnter',
+    lazy = false, -- Important! Make it load immediately
+    priority = 1000, -- Give it high priority to load first
+    config = function()
+      require('mini.starter').setup {}
+    end,
+  },--]]
 }

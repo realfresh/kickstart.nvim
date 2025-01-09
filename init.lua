@@ -8,6 +8,8 @@
 local function config_main()
   -- Enable mouse mode, can be useful for resizing splits for example!
   vim.opt.mouse = 'a'
+  vim.opt.mousescroll = 'ver:2,hor:4'
+  vim.opt.mousemodel = 'popup_setpos'
   -- Don't show the mode, since it's already in the status line
   vim.opt.showmode = false
   -- Set to true if you have a Nerd Font installed and selected in the terminal
@@ -31,9 +33,8 @@ local function config_main()
   -- Decrease mapped sequence wait time
   vim.opt.timeoutlen = 300
 
-  -- Configure how new splits should be opened
-  vim.opt.splitright = true
-  vim.opt.splitbelow = true
+  -- Session management options
+  vim.o.sessionoptions = 'blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions'
 end
 
 local function config_editor()
@@ -72,6 +73,10 @@ local function config_editor()
   -- vim.opt.foldenable = false
   -- vim.opt.foldlevel = 99
   -- g.markdown_folding = 1 -- enable markdown folding
+
+  -- Configure how new splits should be opened
+  vim.opt.splitright = true
+  vim.opt.splitbelow = true
 end
 
 local function config_keybinds()

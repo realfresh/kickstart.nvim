@@ -225,9 +225,10 @@ return {
     -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if prefer nvim-web-devicons
   },
 
-  -- Files: Yazi
+  -- Files: Yazi (Disabled)
   {
     'mikavilpas/yazi.nvim',
+    enabled = false,
     event = 'VeryLazy',
     keys = {
       -- 👇 in this section, choose your own keymappings!
