@@ -1,3 +1,16 @@
+-- Document existing key chains
+local which_key_spec = {
+  { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
+  { '<leader>r', group = '[R]ename' },
+  { '<leader>s', group = '[S]earch' },
+  { '<leader>l', group = '[L]SP' },
+  { '<leader>t', group = '[T]oggle' },
+  { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+  { '<leader>p', group = '[P]rojects (sessions)' },
+  -- { '<leader>d', group = '[D]ocument' },
+  -- { '<leader>w', group = '[W]orkspace' },
+}
+
 return {
   -- Appearance: Theme
   {
@@ -166,16 +179,7 @@ return {
       },
 
       -- Document existing key chains
-      spec = {
-        { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
-        -- { '<leader>d', group = '[D]ocument' },
-        { '<leader>r', group = '[R]ename' },
-        { '<leader>s', group = '[S]earch' },
-        -- { '<leader>w', group = '[W]orkspace' },
-        { '<leader>l', group = '[L]SP' },
-        { '<leader>t', group = '[T]oggle' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
-      },
+      spec = which_key_spec,
     },
   },
 
@@ -265,7 +269,12 @@ return {
   {
     'rmagatti/auto-session',
     lazy = false,
-
+    keys = {
+      -- Will use Telescope if installed or a vim.ui.select picker otherwise
+      { '<leader>pr', '<cmd>SessionSearch<CR>', desc = 'Session search' },
+      { '<leader>ps', '<cmd>SessionSave<CR>', desc = 'Save session' },
+      { '<leader>pa', '<cmd>SessionToggleAutoSave<CR>', desc = 'Toggle autosave' },
+    },
     ---enables autocomplete for opts
     ---@module "auto-session"
     ---@type AutoSession.Config
