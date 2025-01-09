@@ -11,7 +11,12 @@ local which_key_spec = {
   -- { '<leader>w', group = '[W]orkspace' },
 }
 
-local color_scheme = 'kanagawa-wave'
+-- local color_scheme = 'kanagawa-wave'
+-- local color_scheme = 'adwaita'
+-- local color_scheme = 'ayu-dark'
+local color_scheme = 'evergarden'
+
+--
 
 return {
   --------------------
@@ -25,15 +30,31 @@ return {
     config = function()
       local dragon_colors = require('kanagawa.colors').setup { theme = 'dragon' }
 
-      vim.cmd.hi 'Comment gui=none'
+      -- vim.cmd.hi 'Comment gui=none'
+
+      -- bg_dim     = palette.dragonBlack1,
+      -- bg_gutter  = palette.dragonBlack4,
+
+      dragon_colors.theme.ui.bg_gutter = 'none'
+      -- dragon_colors.theme.ui.bg_dim = 'green'
+      -- dragon_colors.theme.ui.bg_m3 = 'green'
+      -- dragon_colors.theme.ui.bg_m2 = 'blue'
+      -- dragon_colors.theme.ui.bg_m1 = 'red'
+      -- dragon_colors.theme.ui.bg = 'black'
+      -- dragon_colors.theme.ui.bg_p1 = 'blue' -- other
+      -- dragon_colors.theme.ui.bg_p2 = 'red' -- highlight
 
       require('kanagawa').setup {
         -- https://github.com/rebelot/kanagawa.nvim?tab=readme-ov-file#configuration
         compile = false, -- enable compiling the colorscheme
         undercurl = true, -- enable undercurls
-        commentStyle = { italic = true },
+        commentStyle = {
+          italic = false,
+        },
         functionStyle = {},
-        keywordStyle = { italic = true },
+        keywordStyle = {
+          italic = false,
+        },
         statementStyle = { bold = true },
         typeStyle = {},
         transparent = false, -- do not set background color
@@ -59,7 +80,11 @@ return {
             },
             lotus = {},
             dragon = {},
-            all = {},
+            all = {
+              ui = {
+                -- bg_gutter = 'none',
+              },
+            },
           },
         },
         overrides = function(colors) -- add/modify highlights
@@ -80,7 +105,7 @@ return {
     priority = 1000,
     opts = {
       -- https://github.com/comfysage/evergarden?tab=readme-ov-file#configuration
-      transparent_background = true,
+      -- transparent_background = true,
       variant = 'hard', -- 'hard'|'medium'|'soft'
       overrides = {}, -- add custom overrides
     },
@@ -96,6 +121,33 @@ return {
     },
   },
 
+  {
+    'Shatur/neovim-ayu',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      require('ayu').setup {
+        -- Set to `true` to use `mirage` variant instead of `dark` for dark background.
+        mirage = false,
+        -- Set to `false` to let terminal manage its own colors.
+        terminal = true,
+        -- A dictionary of group names, each associated with a dictionary of parameters (`bg`, `fg`, `sp` and `style`) and colors in he.
+        overrides = {},
+      }
+    end,
+  },
+  {
+    'Mofiqul/adwaita.nvim',
+    lazy = false,
+    priority = 1000,
+    -- configure and set on startup
+    config = function()
+      vim.g.adwaita_darker = true -- for darker version
+      vim.g.adwaita_disable_cursorline = true -- to disable cursorline
+      vim.g.adwaita_transparent = true -- makes the background transparent
+      -- vim.cmd 'colorscheme adwaita'
+    end,
+  },
   -- Themes: Default
   {
     'folke/tokyonight.nvim',
