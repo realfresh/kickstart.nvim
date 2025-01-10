@@ -1,20 +1,21 @@
 -- Document existing key chains
 local which_key_spec = {
+  { '<leader>b', group = '[B]uffers' },
+  { '<leader>bd', group = '[D]elete' },
   { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
+  { '<leader>g', group = '[G]it' },
+  { '<leader>gh', group = '[G]it Hunk' },
+  -- { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+  { '<leader>l', group = '[L]SP' },
+  { '<leader>p', group = '[P]rojects (sessions)' },
   { '<leader>r', group = '[R]ename' },
   { '<leader>s', group = '[S]earch' },
-  { '<leader>l', group = '[L]SP' },
   { '<leader>t', group = '[T]oggle' },
-  { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
-  { '<leader>p', group = '[P]rojects (sessions)' },
   -- { '<leader>d', group = '[D]ocument' },
   -- { '<leader>w', group = '[W]orkspace' },
 }
 
--- local color_scheme = 'kanagawa-wave'
--- local color_scheme = 'adwaita'
--- local color_scheme = 'ayu-dark'
-local color_scheme = 'evergarden'
+local color_scheme = 'evergarden' -- 'ayu-dark' 'adwaita' 'kanagawa-wave'
 
 --
 
@@ -98,7 +99,6 @@ return {
       }
     end,
   },
-
   {
     'comfysage/evergarden',
     enabled = true,
@@ -110,7 +110,6 @@ return {
       overrides = {}, -- add custom overrides
     },
   },
-
   {
     'catppuccin/nvim',
     enabled = true,
@@ -120,7 +119,6 @@ return {
       -- https://github.com/catppuccin/nvim?tab=readme-ov-file#configuration
     },
   },
-
   {
     'Shatur/neovim-ayu',
     lazy = false,
@@ -136,19 +134,6 @@ return {
       }
     end,
   },
-  {
-    'Mofiqul/adwaita.nvim',
-    lazy = false,
-    priority = 1000,
-    -- configure and set on startup
-    config = function()
-      vim.g.adwaita_darker = true -- for darker version
-      vim.g.adwaita_disable_cursorline = true -- to disable cursorline
-      vim.g.adwaita_transparent = true -- makes the background transparent
-      -- vim.cmd 'colorscheme adwaita'
-    end,
-  },
-  -- Themes: Default
   {
     'folke/tokyonight.nvim',
     enabled = true,
@@ -295,7 +280,6 @@ return {
       end, { desc = '[S]earch [N]eovim files' })
     end,
   },
-
   -- Whichkey: Show pending keybinds
   {
     'folke/which-key.nvim',
@@ -345,7 +329,6 @@ return {
       spec = which_key_spec,
     },
   },
-
   -- Legendary: Command palette like
   {
     'mrjones2014/legendary.nvim',
@@ -386,48 +369,6 @@ return {
       { '<leader>.', ':Legendary<CR>', desc = '[L]egendary menu' },
     },
   },
-
-  -- Mini: Collection of various small independent plugins/modules
-
-  {
-    'echasnovski/mini.nvim',
-    config = function()
-      -- Better Around/Inside textobjects
-      --
-      -- Examples:
-      --  - va)  - [V]isually select [A]round [)]paren
-      --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
-      --  - ci'  - [C]hange [I]nside [']quote
-      require('mini.ai').setup { n_lines = 500 }
-
-      -- Add/delete/replace surroundings (brackets, quotes, etc.)
-      --
-      -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
-      -- - sd'   - [S]urround [D]elete [']quotes
-      -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup()
-
-      -- Simple and easy statusline.
-      --  You could remove this setup call if you don't like it,
-      --  and try some other statusline plugin
-      local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-
-      -- You can configure sections in the statusline by overriding their
-      -- default behavior. For example, here we set the section for
-      -- cursor location to LINE:COLUMN
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function()
-        return '%2l:%-2v'
-      end
-
-      -- ... and there is more!
-      --  Check out: https://github.com/echasnovski/mini.nvim
-      -- require('mini.starter').setup {}
-    end,
-  },
-
   --  Session management
   {
     'rmagatti/auto-session',
@@ -468,7 +409,6 @@ return {
       },
     },
   },
-
   -- Gitsigns: Adds git signs to the gutter and utilities for managing changes
   {
     'lewis6991/gitsigns.nvim',
@@ -517,7 +457,7 @@ return {
         end)
 
         -- Keybinds
-        map('n', '<leader>hp', gitsigns.preview_hunk)
+        map('n', '<leader>ghp', gitsigns.preview_hunk)
 
         vim.cmd [[
           highlight GitSignsAdd    guifg=green        guibg=NONE
@@ -555,6 +495,280 @@ return {
     },
   },
 
+  ----------------------
+  --- QOL Collection ---
+  ----------------------
+
+  -- Mini
+  {
+    'echasnovski/mini.nvim',
+    config = function()
+      -- Better Around/Inside textobjects
+      --
+      -- Examples:
+      --  - va)  - [V]isually select [A]round [)]paren
+      --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
+      --  - ci'  - [C]hange [I]nside [']quote
+      require('mini.ai').setup { n_lines = 500 }
+
+      -- Add/delete/replace surroundings (brackets, quotes, etc.)
+      --
+      -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
+      -- - sd'   - [S]urround [D]elete [']quotes
+      -- - sr)'  - [S]urround [R]eplace [)] [']
+      require('mini.surround').setup()
+
+      -- Simple and easy statusline.
+      --  You could remove this setup call if you don't like it,
+      --  and try some other statusline plugin
+      local statusline = require 'mini.statusline'
+      -- set use_icons to true if you have a Nerd Font
+      statusline.setup { use_icons = vim.g.have_nerd_font }
+
+      -- You can configure sections in the statusline by overriding their
+      -- default behavior. For example, here we set the section for
+      -- cursor location to LINE:COLUMN
+      ---@diagnostic disable-next-line: duplicate-set-field
+      statusline.section_location = function()
+        return '%2l:%-2v'
+      end
+
+      -- ... and there is more!
+      --  Check out: https://github.com/echasnovski/mini.nvim
+      -- require('mini.starter').setup {}
+    end,
+  },
+
+  -- Snacks
+  {
+    'folke/snacks.nvim',
+    priority = 1000,
+    lazy = false,
+    ---@type snacks.Config
+    opts = {
+      input = { enabled = false },
+      quickfile = { enabled = false },
+      dashboard = { enabled = false },
+      indent = { enabled = false },
+      bigfile = { enabled = false },
+      -- Enabled
+      bufdelete = { enabled = true },
+      debug = { enabled = true },
+      lazygit = { enabled = true },
+      ---@class snacks.scroll.Config
+      ---@field animate snacks.animate.Config
+      scroll = {
+        spamming = 10, -- threshold for spamming detection
+        animate = {
+          duration = { step = 10, total = 250 },
+          easing = 'outSine',
+        },
+      },
+      scope = { enabled = true },
+      statuscolumn = { enabled = true },
+      words = { enabled = true },
+      toggle = { enabled = true },
+      notifier = {
+        enabled = true,
+        timeout = 3000,
+      },
+      styles = {
+        notification = {
+          -- wo = { wrap = true } -- Wrap notifications
+        },
+      },
+    },
+    keys = {
+      --[[
+      {
+        '<leader>.',
+        desc = 'Toggle Scratch Buffer',
+        function()
+          Snacks.scratch()
+        end,
+      },
+      {
+        '<leader>S',
+        desc = 'Select Scratch Buffer',
+        function()
+          Snacks.scratch.select()
+        end,
+      },
+      --]]
+      -- Notifications
+      {
+        '<leader>nh',
+        desc = 'Notification History',
+        function()
+          Snacks.notifier.show_history()
+        end,
+      },
+      {
+        '<leader>nd',
+        desc = 'Dismiss All Notifications',
+        function()
+          Snacks.notifier.hide()
+        end,
+      },
+      {
+        '<leader>nN',
+        desc = 'Neovim News',
+        function()
+          Snacks.win {
+            file = vim.api.nvim_get_runtime_file('doc/news.txt', false)[1],
+            width = 0.6,
+            height = 0.6,
+            wo = {
+              spell = false,
+              wrap = false,
+              signcolumn = 'yes',
+              statuscolumn = ' ',
+              conceallevel = 3,
+            },
+          }
+        end,
+      },
+      -- Buffer
+      {
+        '<leader>bdc',
+        desc = 'Delete Current Buffer',
+        function()
+          Snacks.bufdelete()
+        end,
+      },
+      {
+        '<leader>bda',
+        desc = 'Delete All Buffers',
+        function()
+          Snacks.bufdelete.all()
+        end,
+      },
+      {
+        '<leader>bdo',
+        desc = 'Delete Other Buffers',
+        function()
+          Snacks.bufdelete.other()
+        end,
+      },
+      -- Rename
+      {
+        '<leader>rf',
+        desc = 'Rename File',
+        function()
+          Snacks.rename.rename_file()
+        end,
+      },
+      -- Git
+      {
+        '<leader>gb',
+        desc = 'Git Browse',
+        mode = { 'n', 'v' },
+        function()
+          Snacks.gitbrowse()
+        end,
+      },
+      {
+        '<leader>gB',
+        desc = 'Git Blame',
+        function()
+          Snacks.git.blame_line()
+        end,
+      },
+      {
+        '<leader>gf',
+        desc = 'Lazygit Current File History',
+        function()
+          Snacks.lazygit.log_file()
+        end,
+      },
+      {
+        '<leader>gg',
+        desc = 'Lazygit',
+        function()
+          Snacks.lazygit()
+        end,
+      },
+      {
+        '<leader>gl',
+        desc = 'Lazygit Log (cwd)',
+        function()
+          Snacks.lazygit.log()
+        end,
+      },
+      -- Other
+      {
+        '<leader>tt',
+        desc = 'Toggle Terminal',
+        function()
+          Snacks.terminal()
+        end,
+      },
+      {
+        '<leader>tki',
+        desc = 'Which Key Ignore',
+        function()
+          Snacks.terminal()
+        end,
+      },
+      -- Words
+      {
+        ']]',
+        function()
+          Snacks.words.jump(vim.v.count1)
+        end,
+        desc = 'Next Reference',
+        mode = { 'n', 't' },
+      },
+      {
+        '[[',
+        function()
+          Snacks.words.jump(-vim.v.count1)
+        end,
+        desc = 'Prev Reference',
+        mode = { 'n', 't' },
+      },
+    },
+    init = function()
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'VeryLazy',
+        callback = function()
+          local Snacks = require 'snacks'
+          -- Setup some globals for debugging (lazy-loaded)
+          _G.dd = function(...)
+            Snacks.debug.inspect(...)
+          end
+          _G.bt = function()
+            Snacks.debug.backtrace()
+          end
+          vim.print = _G.dd -- Override print to use snacks for `:=` command
+
+          -- Create some toggle mappings
+          Snacks.toggle.option('spell', { name = 'Spelling' }):map '<leader>us'
+          Snacks.toggle.option('wrap', { name = 'Wrap' }):map '<leader>uw'
+          Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):map '<leader>uL'
+          Snacks.toggle.diagnostics():map '<leader>ud'
+          Snacks.toggle.line_number():map '<leader>ul'
+          Snacks.toggle.option('conceallevel', { off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2 }):map '<leader>uc'
+          Snacks.toggle.treesitter():map '<leader>uT'
+          Snacks.toggle.option('background', { off = 'light', on = 'dark', name = 'Dark Background' }):map '<leader>ub'
+          Snacks.toggle.inlay_hints():map '<leader>uh'
+          Snacks.toggle.indent():map '<leader>ug'
+          Snacks.toggle.dim():map '<leader>uD'
+        end,
+      })
+    end,
+  },
+
+  -----------------
+  --- Overrides ---
+  -----------------
+
+  -- Input & Select
+  {
+    'stevearc/dressing.nvim',
+    opts = {},
+  },
+
   --------------
   -- Disabled --
   --------------
@@ -588,51 +802,6 @@ return {
           -- footer = {}, -- footer
         },
       }
-    end,
-  },
-  {
-    'olimorris/persisted.nvim',
-    enabled = false,
-    lazy = false, -- make sure the plugin is always loaded at startup
-    keys = {
-      { '<leader>sp', ':Telescope persisted<CR>', desc = '[P]ersisted Sessions' },
-    },
-    config = function()
-      require('persisted').setup {
-        autostart = true, -- Automatically start the plugin on load?
-        autosave = true,
-        --[[ Defaults 
-        -- Function to determine if a session should be saved
-        ---@type fun(): boolean
-        should_save = function()
-          return true
-        end,
-        save_dir = vim.fn.expand(vim.fn.stdpath 'data' .. '/sessions/'), -- Directory where session files are saved
-        follow_cwd = true, -- Change the session file to match any change in the cwd?
-        use_git_branch = false, -- Include the git branch in the session file name?
-        autoload = false, -- Automatically load the session for the cwd on Neovim startup?
-
-        -- Function to run when `autoload = true` but there is no session to load
-        ---@type fun(): any
-        on_autoload_no_session = function() end,
-        allowed_dirs = {}, -- Table of dirs that the plugin will start and autoload from
-        ignored_dirs = {}, -- Table of dirs that are ignored for starting and autoloading
-        telescope = {
-          mappings = { -- Mappings for managing sessions in Telescope
-            copy_session = '<C-c>',
-            change_branch = '<C-b>',
-            delete_session = '<C-d>',
-          },
-          icons = { -- icons displayed in the Telescope picker
-            selected = ' ',
-            dir = '  ',
-            branch = ' ',
-          },
-        },
-        --]]
-      }
-
-      require('telescope').load_extension 'persisted'
     end,
   },
 
