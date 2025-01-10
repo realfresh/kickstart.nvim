@@ -7,10 +7,11 @@ local which_key_spec = {
   { '<leader>gh', group = '[G]it Hunk' },
   -- { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
   { '<leader>l', group = '[L]SP' },
+  { '<leader>o', group = '[O]ther' },
   { '<leader>p', group = '[P]rojects (sessions)' },
   { '<leader>r', group = '[R]ename' },
   { '<leader>s', group = '[S]earch' },
-  { '<leader>t', group = '[T]oggle' },
+  { '<leader>t', group = '[T]ab' },
   -- { '<leader>d', group = '[D]ocument' },
   -- { '<leader>w', group = '[W]orkspace' },
 }
@@ -26,7 +27,7 @@ return {
 
   {
     'rebelot/kanagawa.nvim',
-    enabled = true,
+    enabled = false,
     priority = 1000,
     config = function()
       local dragon_colors = require('kanagawa.colors').setup { theme = 'dragon' }
@@ -112,9 +113,9 @@ return {
   },
   {
     'catppuccin/nvim',
-    enabled = true,
     name = 'catppuccin',
     priority = 1000,
+    enabled = false,
     opts = {
       -- https://github.com/catppuccin/nvim?tab=readme-ov-file#configuration
     },
@@ -123,6 +124,7 @@ return {
     'Shatur/neovim-ayu',
     lazy = false,
     priority = 1000,
+    enabled = false,
     config = function()
       require('ayu').setup {
         -- Set to `true` to use `mirage` variant instead of `dark` for dark background.
@@ -697,14 +699,14 @@ return {
       },
       -- Other
       {
-        '<leader>tt',
+        '<leader>ot',
         desc = 'Toggle Terminal',
         function()
           Snacks.terminal()
         end,
       },
       {
-        '<leader>tki',
+        '<leader>oi',
         desc = 'Which Key Ignore',
         function()
           Snacks.terminal()
@@ -756,6 +758,60 @@ return {
           Snacks.toggle.dim():map '<leader>uD'
         end,
       })
+    end,
+  },
+
+  --------------------
+  --- Lines & Bars ---
+  --------------------
+
+  {
+    'nanozuki/tabby.nvim',
+    -- event = 'VimEnter', -- if you want lazy load, see below
+    dependencies = 'nvim-tree/nvim-web-devicons',
+    config = function()
+      local colors = require('evergarden').colors()
+      local theme = {
+        fill = { fg = colors.text, bg = colors.base },
+        head = { fg = colors.text, bg = colors.surface1, style = 'bold' },
+        current_tab = { fg = colors.text, bg = colors.overlay0, style = 'bold' },
+        tab = { fg = colors.text, bg = colors.surface0 },
+        win = { fg = colors.text, bg = colors.surface0 },
+        tail = { fg = colors.text, bg = colors.surface0 },
+      }
+      require('tabby').setup {
+        line = function(line)
+          return {
+            {
+              { '  ', hl = theme.head },
+              -- line.sep('', theme.head, theme.fill),
+              line.sep(' ', theme.head, theme.fill),
+            },
+            line.tabs().foreach(function(tab)
+              local hl = tab.is_current() and theme.current_tab or theme.tab
+              return {
+                -- line.sep('', hl, theme.fill),
+                line.sep('', hl, theme.fill),
+                tab.is_current() and '' or '󰆣',
+                tab.number(),
+                tab.name(),
+                tab.close_btn '',
+                line.sep('', hl, theme.fill),
+                -- line.sep('', hl, theme.fill),
+                hl = hl,
+                margin = ' ',
+              }
+            end),
+            line.spacer(),
+            {
+              -- line.sep('', theme.tail, theme.fill),
+              { '  ', hl = theme.tail },
+            },
+            hl = theme.fill,
+          }
+        end,
+        -- option = {}, -- setup modules' option,
+      }
     end,
   },
 

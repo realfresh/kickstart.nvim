@@ -34,7 +34,10 @@ local function config_main()
   vim.opt.timeoutlen = 300
 
   -- Session management options
-  vim.o.sessionoptions = 'blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions'
+  vim.o.sessionoptions = 'blank,buffers,curdir,folds,globals,help,tabpages,winsize,winpos,terminal,localoptions'
+
+  -- Tab Line
+  vim.o.showtabline = 2
 end
 
 local function config_editor()

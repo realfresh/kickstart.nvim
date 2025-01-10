@@ -3,6 +3,12 @@ return {
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
+  -- Comments
+  {
+    'numToStr/Comment.nvim',
+    opts = {},
+  },
+
   -- Comment highlighting
   {
     'folke/todo-comments.nvim',
