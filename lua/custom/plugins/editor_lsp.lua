@@ -247,6 +247,76 @@ return {
     end,
   },
 
+  -- AI
+
+  -- { 'github/copilot.vim' },
+
+  {
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
+    config = function()
+      require('copilot').setup {
+        panel = {
+          enabled = true,
+          auto_refresh = false,
+          keymap = {
+            jump_prev = '[[',
+            jump_next = ']]',
+            accept = '<CR>',
+            refresh = 'gr',
+            open = '<M-CR>',
+          },
+          layout = {
+            position = 'bottom', -- | top | left | right | horizontal | vertical
+            ratio = 0.4,
+          },
+        },
+        suggestion = {
+          enabled = true,
+          auto_trigger = true,
+          hide_during_completion = true,
+          debounce = 75,
+          keymap = {
+            accept = '<C-CR>',
+            accept_word = false,
+            accept_line = false,
+            next = '<C-Right>',
+            prev = '<C-Left>',
+            dismiss = '<C-Space>',
+          },
+        },
+        filetypes = {
+          -- yaml = false,
+          -- markdown = false,
+          help = false,
+          gitcommit = false,
+          gitrebase = false,
+          hgcommit = false,
+          svn = false,
+          cvs = false,
+          ['.'] = false,
+        },
+        copilot_node_command = 'node', -- Node.js version must be > 18.x
+        server_opts_overrides = {
+          settings = {
+            advanced = {
+              listCount = 5,
+              inlineSuggestCount = 3,
+            },
+          },
+        },
+      }
+    end,
+  },
+  {
+    'zbirenbaum/copilot-cmp',
+    dependencies = { 'zbirenbaum/copilot.lua' },
+    config = function()
+      require('copilot_cmp').setup()
+    end,
+  },
+
   -- Autocompletion
   {
     'hrsh7th/nvim-cmp',
@@ -303,6 +373,8 @@ return {
         --
         -- No, but seriously. Please read `:help ins-completion`, it is really good!
         mapping = cmp.mapping.preset.insert {
+          -- Close completion when you hit <esc>
+          ['<Esc>'] = cmp.mapping.close(),
           -- Select the [n]ext item
           ['<C-n>'] = cmp.mapping.select_next_item(),
           -- Select the [p]revious item
@@ -316,6 +388,7 @@ return {
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
           ['<C-y>'] = cmp.mapping.confirm { select = true },
+          ['<tab>'] = cmp.mapping.confirm { select = true },
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
@@ -357,6 +430,7 @@ return {
             group_index = 0,
           },
           { name = 'nvim_lsp' },
+          -- { name = 'copilot' },
           { name = 'luasnip' },
           { name = 'path' },
         },
