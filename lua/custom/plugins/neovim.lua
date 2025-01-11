@@ -1,5 +1,6 @@
 -- Document existing key chains
 local which_key_spec = {
+  { '<leader>`', group = 'Global' },
   { '<leader>b', group = '[B]uffers' },
   { '<leader>bd', group = '[D]elete' },
   { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },

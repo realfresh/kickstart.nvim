@@ -61,6 +61,7 @@ local function config_editor()
   --  and `:help 'listchars'`
   vim.opt.list = true
   vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+  vim.opt.fillchars:append { eob = ' ' }
 
   -- Preview substitutions live, as you type!
   vim.opt.inccommand = 'split'
@@ -131,7 +132,7 @@ local function config_keybinds()
   vim.keymap.set('v', '<leader>x', ':lua<CR>')
 
   -- Editor Utils
-  vim.keymap.set('n', '<leader>zz', ':wqa<CR>', { desc = 'Quit All (Write)' })
+  vim.keymap.set('n', '<leader>``', ':wqa<CR>', { desc = 'Quit All (Write)' })
 end
 
 config_main()
