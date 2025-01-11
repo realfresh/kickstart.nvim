@@ -792,9 +792,9 @@ return {
     end,
   },
 
-  --------------------
-  --- Lines & Bars ---
-  --------------------
+  ----------------------------
+  --- Lines & Bars & Menus ---
+  ----------------------------
 
   -- Statusline
   {
@@ -898,6 +898,65 @@ return {
         end,
       },
     },
+  },
+
+  -- Menu
+  { 'nvzone/volt', lazy = true },
+  {
+    'nvzone/menu',
+    lazy = true,
+    config = function() end,
+    keys = {
+      {
+        '<C-RightMouse>',
+        mode = { 'n', 'v' },
+        function()
+          require('menu.utils').delete_old_menus()
+
+          vim.cmd.exec '"normal! \\<RightMouse>"'
+
+          -- clicked buf
+          local buf = vim.api.nvim_win_get_buf(vim.fn.getmousepos().winid)
+          local options = vim.bo[buf].ft == 'NvimTree' and 'nvimtree' or 'default'
+          print(vim.bo[buf].ft)
+
+          require('menu').open(options, { mouse = true })
+        end,
+      },
+    },
+  },
+
+  ------------------
+  --- Navigation ---
+  ------------------
+
+  {
+    'otavioschwanck/arrow.nvim',
+    dependencies = {
+      { 'nvim-tree/nvim-web-devicons' },
+      -- or if using `mini.icons`
+      -- { "echasnovski/mini.icons" },
+    },
+    opts = {
+      show_icons = true,
+      leader_key = ';', -- Recommended to be a single key
+      buffer_leader_key = 'm', -- Per Buffer Mappings
+    },
+  },
+  {
+    'gcmt/vessel.nvim',
+    config = function()
+      require('vessel').setup {
+        create_commands = true,
+        commands = { -- not required unless you want to customize each command name
+          view_marks = 'Marks',
+          view_jumps = 'Jumps',
+          view_buffers = 'Buffers',
+        },
+      }
+      local vessel = require 'vessel'
+      vessel.opt.buffers.view = 'tree'
+    end,
   },
 
   -----------------

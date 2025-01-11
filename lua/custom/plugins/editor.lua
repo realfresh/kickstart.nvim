@@ -60,4 +60,17 @@ return {
       },
     },
   },
+
+  -- Navigation
+  {
+    'ggandor/leap.nvim',
+    lazy = false,
+    dependencies = { 'tpope/vim-repeat' },
+    config = function()
+      -- require('leap').create_default_mappings()
+      vim.keymap.set({ 'n', 'x', 'o' }, 'gl', '<Plug>(leap-forward)', { desc = 'Leap: Forward' })
+      vim.keymap.set({ 'n', 'x', 'o' }, 'gL', '<Plug>(leap-backward)', { desc = 'Leap: Backward' })
+      vim.keymap.set({ 'n', 'x', 'o' }, 'gW', '<Plug>(leap-from-window)', { desc = 'Leap: From Window' })
+    end,
+  },
 }
