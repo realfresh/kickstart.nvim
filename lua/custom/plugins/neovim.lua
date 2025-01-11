@@ -12,12 +12,15 @@ local which_key_spec = {
   { '<leader>r', group = '[R]ename' },
   { '<leader>s', group = '[S]earch' },
   { '<leader>t', group = '[T]ab' },
+  { '<leader>z', group = ' Editor' },
   -- { '<leader>d', group = '[D]ocument' },
   -- { '<leader>w', group = '[W]orkspace' },
 }
 
 local color_scheme = 'evergarden' -- 'ayu-dark' 'adwaita' 'kanagawa-wave'
-
+local colors_get = function()
+  return require('evergarden').colors()
+end
 --
 
 return {
@@ -543,20 +546,24 @@ return {
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
 
-      -- Simple and easy statusline.
-      --  You could remove this setup call if you don't like it,
-      --  and try some other statusline plugin
-      local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
+      local setup_statusline = function()
+        -- Simple and easy statusline.
+        --  You could remove this setup call if you don't like it,
+        --  and try some other statusline plugin
+        local statusline = require 'mini.statusline'
+        -- set use_icons to true if you have a Nerd Font
+        statusline.setup { use_icons = vim.g.have_nerd_font }
 
-      -- You can configure sections in the statusline by overriding their
-      -- default behavior. For example, here we set the section for
-      -- cursor location to LINE:COLUMN
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function()
-        return '%2l:%-2v'
+        -- You can configure sections in the statusline by overriding their
+        -- default behavior. For example, here we set the section for
+        -- cursor location to LINE:COLUMN
+        ---@diagnostic disable-next-line: duplicate-set-field
+        statusline.section_location = function()
+          return '%2l:%-2v'
+        end
       end
+
+      -- setup_statusline()
 
       -- ... and there is more!
       --  Check out: https://github.com/echasnovski/mini.nvim
@@ -788,12 +795,46 @@ return {
   --- Lines & Bars ---
   --------------------
 
+  -- Statusline
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      local colors = colors_get()
+      local theme = require 'lualine.themes.auto'
+
+      -- Colors: normal
+      theme.normal.b.bg = colors.surface1
+      theme.normal.b.fg = colors.text
+      theme.normal.c.bg = colors.base
+
+      -- Colors: insert
+      -- theme.insert.b.bg = colors.surface1
+      theme.insert.b.fg = colors.text
+      -- theme.insert.c.bg = colors.base
+
+      -- Colors: visual
+      theme.visual.b.bg = colors.surface1
+      theme.visual.b.fg = colors.text
+      -- theme.visual.c.bg = colors.base
+
+      require('lualine').setup {
+        options = {
+          theme = theme,
+          component_separators = { left = '', right = '' },
+          section_separators = { left = '', right = '' },
+        },
+      }
+    end,
+  },
+
+  -- Tabline
   {
     'nanozuki/tabby.nvim',
     event = 'VimEnter', -- if you want lazy load, see below
     dependencies = 'nvim-tree/nvim-web-devicons',
     config = function()
-      local colors = require('evergarden').colors()
+      local colors = colors_get()
       local theme = {
         fill = { fg = colors.text, bg = colors.base },
         head = { fg = colors.text, bg = colors.surface1, style = 'bold' },
@@ -843,18 +884,15 @@ return {
       { '<leader>to', mode = 'n', desc = 'Tab: Only', ':tabonly<CR>' },
       { '<leader>tf', mode = 'n', desc = 'Tab: Go Forward', ':tabn<CR>' },
       { '<leader>tb', mode = 'n', desc = 'Tab: Go Backward', ':tabp<CR>' },
-      { '<leader>t-', mode = 'n', desc = 'Tab: Move Previous', ':-tabmove<CR>' },
-      { '<leader>t=', mode = 'n', desc = 'Tab: Move Return', ':+tabmove<CR>' },
+      { '<leader>t-', mode = 'n', desc = 'Tab: Move Backward', ':-tabmove<CR>' },
+      { '<leader>t=', mode = 'n', desc = 'Tab: Move Forward', ':+tabmove<CR>' },
       {
         '<leader>tr',
         mode = 'n',
         desc = 'Tab: Rename',
         function()
           Snacks.input({ prompt = 'Tab Name:' }, function(v)
-            if v ~= nil then
-              print 'doing'
-              require('tabby').tab_rename(v)
-            end
+            require('tabby').tab_rename(v)
           end)
         end,
       },

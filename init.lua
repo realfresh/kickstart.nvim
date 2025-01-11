@@ -126,9 +126,12 @@ local function config_keybinds()
   vim.api.nvim_set_keymap('v', '<D-v>', '<C-R>+', { noremap = true, silent = true })
 
   -- Execute Lua
-  vim.keymap.set('n', '<space><space>x', '<cmd>source %<CR>')
-  vim.keymap.set('n', '<space>x', ':.lua<CR>')
-  vim.keymap.set('v', '<space>x', ':lua<CR>')
+  vim.keymap.set('n', '<leader><leader>x', '<cmd>source %<CR>')
+  vim.keymap.set('n', '<leader>x', ':.lua<CR>')
+  vim.keymap.set('v', '<leader>x', ':lua<CR>')
+
+  -- Editor Utils
+  vim.keymap.set('n', '<leader>zz', ':wqa<CR>', { desc = 'Quit All (Write)' })
 end
 
 config_main()
