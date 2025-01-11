@@ -505,8 +505,32 @@ return {
   {
     'echasnovski/mini.nvim',
     config = function()
+      -- Autoclose pairs
+      require('mini.pairs').setup {
+        -- In which modes mappings from this `config` should be created
+        modes = { insert = true, command = false, terminal = false },
+        -- Global mappings. Each right hand side should be a pair information, a
+        -- table with at least these fields (see more in |MiniPairs.map|):
+        -- - <action> - one of 'open', 'close', 'closeopen'.
+        -- - <pair> - two character string for pair to be used.
+        -- By default pair is not inserted after `\`, quotes are not recognized by
+        -- `<CR>`, `'` does not insert pair after a letter.
+        -- Only parts of tables can be tweaked (others will use these defaults).
+        mappings = {
+          ['('] = { action = 'open', pair = '()', neigh_pattern = '[^\\].' },
+          ['['] = { action = 'open', pair = '[]', neigh_pattern = '[^\\].' },
+          ['{'] = { action = 'open', pair = '{}', neigh_pattern = '[^\\].' },
+
+          [')'] = { action = 'close', pair = '()', neigh_pattern = '[^\\].' },
+          [']'] = { action = 'close', pair = '[]', neigh_pattern = '[^\\].' },
+          ['}'] = { action = 'close', pair = '{}', neigh_pattern = '[^\\].' },
+
+          ['"'] = { action = 'closeopen', pair = '""', neigh_pattern = '[^\\].', register = { cr = false } },
+          ["'"] = { action = 'closeopen', pair = "''", neigh_pattern = '[^%a\\].', register = { cr = false } },
+          ['`'] = { action = 'closeopen', pair = '``', neigh_pattern = '[^\\].', register = { cr = false } },
+        },
+      }
       -- Better Around/Inside textobjects
-      --
       -- Examples:
       --  - va)  - [V]isually select [A]round [)]paren
       --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
@@ -514,7 +538,6 @@ return {
       require('mini.ai').setup { n_lines = 500 }
 
       -- Add/delete/replace surroundings (brackets, quotes, etc.)
-      --
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
@@ -767,7 +790,7 @@ return {
 
   {
     'nanozuki/tabby.nvim',
-    -- event = 'VimEnter', -- if you want lazy load, see below
+    event = 'VimEnter', -- if you want lazy load, see below
     dependencies = 'nvim-tree/nvim-web-devicons',
     config = function()
       local colors = require('evergarden').colors()
@@ -812,7 +835,30 @@ return {
         end,
         -- option = {}, -- setup modules' option,
       }
+      require 'tabby'
     end,
+    keys = {
+      { '<leader>tn', mode = 'n', desc = 'Tab: New', ':$tabnew<CR>' },
+      { '<leader>tc', mode = 'n', desc = 'Tab: Close', ':tabclose<CR>' },
+      { '<leader>to', mode = 'n', desc = 'Tab: Only', ':tabonly<CR>' },
+      { '<leader>tf', mode = 'n', desc = 'Tab: Go Forward', ':tabn<CR>' },
+      { '<leader>tb', mode = 'n', desc = 'Tab: Go Backward', ':tabp<CR>' },
+      { '<leader>t-', mode = 'n', desc = 'Tab: Move Previous', ':-tabmove<CR>' },
+      { '<leader>t=', mode = 'n', desc = 'Tab: Move Return', ':+tabmove<CR>' },
+      {
+        '<leader>tr',
+        mode = 'n',
+        desc = 'Tab: Rename',
+        function()
+          Snacks.input({ prompt = 'Tab Name:' }, function(v)
+            if v ~= nil then
+              print 'doing'
+              require('tabby').tab_rename(v)
+            end
+          end)
+        end,
+      },
+    },
   },
 
   -----------------
