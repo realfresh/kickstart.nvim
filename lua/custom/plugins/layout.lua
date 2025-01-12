@@ -1,8 +1,34 @@
 return {
 
+  -- Files: NvimTree
+
+  {
+    'nvim-tree/nvim-tree.lua',
+    version = '*',
+    lazy = false,
+    dependencies = {
+      'nvim-tree/nvim-web-devicons',
+    },
+    keys = {
+      {
+        '<leader>1',
+        desc = 'NvimTree',
+        -- ':NvimTreeOpen<CR>'
+        function()
+          local nvimtree = require 'nvim-tree.api'
+          nvimtree.tree.toggle()
+        end,
+      },
+    },
+    config = function()
+      require('nvim-tree').setup {}
+    end,
+  },
+
   -- Files: NeoTree
   {
     'nvim-neo-tree/neo-tree.nvim',
+    enabled = false,
     branch = 'v3.x',
     dependencies = {
       'nvim-lua/plenary.nvim',
@@ -19,6 +45,7 @@ return {
 
   {
     'stevearc/oil.nvim',
+    enabled = false,
     ---@module 'oil'
     ---@type oil.SetupOpts
     opts = {

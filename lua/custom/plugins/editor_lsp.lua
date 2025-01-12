@@ -1,5 +1,7 @@
 return {
 
+  -- NOTE: LSP
+
   -- LSP: Neovim APIs
   {
     'folke/lazydev.nvim',
@@ -247,7 +249,7 @@ return {
     end,
   },
 
-  -- AI
+  -- NOTE: AI
 
   -- { 'github/copilot.vim' },
 
@@ -281,8 +283,8 @@ return {
             accept = '<C-CR>',
             accept_word = false,
             accept_line = false,
-            next = '<C-Right>',
-            prev = '<C-Left>',
+            next = '<C-d>',
+            prev = '<C-u>',
             dismiss = '<C-Space>',
           },
         },

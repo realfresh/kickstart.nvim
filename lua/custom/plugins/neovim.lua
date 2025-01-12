@@ -105,17 +105,6 @@ return {
     end,
   },
   {
-    'comfysage/evergarden',
-    enabled = true,
-    priority = 1000,
-    opts = {
-      -- https://github.com/comfysage/evergarden?tab=readme-ov-file#configuration
-      -- transparent_background = true,
-      variant = 'hard', -- 'hard'|'medium'|'soft'
-      overrides = {}, -- add custom overrides
-    },
-  },
-  {
     'catppuccin/nvim',
     name = 'catppuccin',
     priority = 1000,
@@ -152,6 +141,24 @@ return {
     end,
   },
 
+  {
+    'comfysage/evergarden',
+    enabled = true,
+    priority = 1000,
+    config = function()
+      require('evergarden').setup {
+        -- https://github.com/comfysage/evergarden?tab=readme-ov-file#configuration
+        -- transparent_background = true,
+        variant = 'hard', -- 'hard'|'medium'|'soft'
+        overrides = {}, -- add custom overrides
+      }
+      -- local colors = colors_get()
+      -- vim.cmd [[
+      --   highlight NormalCursor guifg=#FFFFFF guibg=#5F87AF
+      --   highlight InsertCursor guifg=#FFFFFF guibg=#87AF87
+      -- ]]
+    end,
+  },
   -- Theme Switcher
   {
     'zaldih/themery.nvim',

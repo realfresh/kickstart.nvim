@@ -30,9 +30,11 @@ return {
   -- UFO: Folding
   {
     'kevinhwang91/nvim-ufo',
+    enabled = true,
     dependencies = {
       'kevinhwang91/promise-async',
       'nvim-treesitter/nvim-treesitter',
+      'neovim/nvim-lspconfig',
     },
     config = function()
       -- Enable fold column
@@ -43,6 +45,15 @@ return {
       vim.o.foldlevelstart = 99
       -- Use nvim-ufo provider
       vim.o.foldenable = true
+
+      -- vim.opt.foldcolumn = 'auto:1'
+      -- vim.opt.signcolumn = 'auto'
+
+      -- vim.opt.fillchars:append {
+      --   foldsep = '│', -- Fold separator
+      --   foldopen = '^', -- Mark for open folds
+      --   foldclose = '>', -- Mark for closed folds
+      -- }
 
       -- Using ufo provider need remap `zR` and `zM`
       vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
@@ -57,8 +68,35 @@ return {
         end
       end)
 
+      local capabilities = vim.lsp.protocol.make_client_capabilities()
+      capabilities.textDocument.foldingRange = {
+        dynamicRegistration = false,
+        lineFoldingOnly = true,
+      }
+      local language_servers = require('lspconfig').util.available_servers() -- or list servers manually like {'gopls', 'clangd'}
+      for _, ls in ipairs(language_servers) do
+        require('lspconfig')[ls].setup {
+          capabilities = capabilities,
+          -- you can add other fields for setting up lsp server in this table
+        }
+      end
+
+      local ufo = require 'ufo'
+
       -- Configure UFO
-      require('ufo').setup {
+      ufo.setup {
+        open_fold_hl_timeout = 400,
+        close_fold_kinds_for_ft = {},
+        enable_get_fold_virt_text = false,
+        preview = {
+          win_config = {
+            border = 'rounded',
+            winblend = 12,
+            winhighlight = 'Normal:Normal',
+            maxheight = 20,
+          },
+        },
+        enable_fold_indicator = false,
         provider_selector = function(bufnr, filetype, buftype)
           return { 'treesitter', 'indent' }
         end,

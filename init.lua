@@ -38,6 +38,12 @@ local function config_main()
 
   -- Tab Line
   vim.o.showtabline = 2
+
+  -- Autosave: on focus lost
+  vim.api.nvim_create_autocmd({ 'FocusLost' }, {
+    pattern = '*',
+    command = 'silent! wa', -- 'wa' means write all changed buffers
+  })
 end
 
 local function config_editor()
@@ -81,6 +87,15 @@ local function config_editor()
   -- Configure how new splits should be opened
   vim.opt.splitright = true
   vim.opt.splitbelow = true
+
+  -- Cursor
+  -- vim.opt.guicursor = {
+  --   -- 'n-v-c-sm:block', -- default
+  --   -- 'i-ci-ve:ver25', -- default
+  --   'n-v-c-sm:ver25-NormalCursor',
+  --   'i-ci-ve:ver25-InsertCursor',
+  --   'r-cr-o:hor20',
+  -- }
 end
 
 local function config_keybinds()
