@@ -297,6 +297,7 @@ local which_key_spec = {
   { '<leader>bd', group = '[D]elete' },
   { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
   { '<leader>cc', group = '[C]ursors', mode = { 'n', 'x' } },
+  { '<leader>e', group = '[E]ditor' },
   { '<leader>g', group = '[G]it' },
   { '<leader>gh', group = '[G]it Hunk' },
   -- { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
@@ -1138,6 +1139,39 @@ local plugins_editor = {
   -- Detect tabstop and shiftwidth
   'tpope/vim-sleuth',
 
+  -- Main window padding
+  {
+    'shortcuts/no-neck-pain.nvim',
+    dependencies = { 'folke/snacks.nvim' },
+    lazy = false,
+    config = function()
+      require('no-neck-pain').setup {
+        width = 120,
+        autocmds = {
+          enableOnVimEnter = true,
+          enableOnTabEnter = true,
+        },
+        integrations = {
+          Nvimtree = {
+            reopen = true,
+            position = 'left',
+          },
+        },
+      }
+
+      -- print 'No Neck Pain loaded'
+      -- Snacks.notify 'No Neck Pain loaded'
+      -- vim.cmd ':NoNeckPain<CR>'
+    end,
+    keys = {
+      { '<leader>ept', ':NoNeckPain<CR>', desc = 'Toggle Padding (No Neck Pain)' },
+      { '<leader>epl', ':NoNeckPainToggleLeftSide<CR>', desc = 'Toggle Padding Left (No Neck Pain)' },
+      { '<leader>epr', ':NoNeckPainToggleRightSide<CR>', desc = 'Toggle Padding Right (No Neck Pain)' },
+      { '<leader>epm', ':NoNeckPainWidthDown<CR>', desc = 'Increase Padding (No Neck Pain)' },
+      { '<leader>epl', ':NoNeckPainWidthUp<CR>', desc = 'Decrease Padding (No Neck Pain)' },
+    },
+  },
+
   -- Comments: Line & Block
   {
     'numToStr/Comment.nvim',
@@ -1856,6 +1890,7 @@ local plugins_editor_languages = {
       library = {
         -- Load luvit types when the `vim.uv` word is found
         { path = 'luvit-meta/library', words = { 'vim%.uv' } },
+        { path = '"/Users/reemus/.hammerspoon/Spoons/EmmyLua.spoon/annotations', words = { 'hs' } },
       },
     },
   },
