@@ -270,6 +270,7 @@ local lazyicons = vim.g.have_nerd_font and {}
 --  NOTE:  Plugin Variables
 ----------------------------------------------------------------
 
+-- [Keybinds]
 -- Document existing key chains
 local which_key_spec = {
   -- { '<leader>`', group = 'Global' },
@@ -292,16 +293,16 @@ local which_key_spec = {
   -- { '<leader>w', group = '[W]orkspace' },
 }
 
-local color_scheme = 'evergarden' -- 'ayu-dark' 'adwaita' 'kanagawa-wave'
+-- [Themes]
+-- 'ayu-dark' 'adwaita' 'kanagawa-wave'
+local color_scheme = 'evergarden'
 local colors_get = function()
   return require('evergarden').colors()
 end
 
--- LSP Servers
--- For help run
---  `:help lspconfig-all`
+-- [LSP]
 -- Find LSP servers at:
---  - https://github.com/williamboman/mason-lspconfig.nvim?tab=readme-ov-file#available-lsp-servers
+-- https://github.com/williamboman/mason-lspconfig.nvim?tab=readme-ov-file#available-lsp-servers
 
 local lsp_servers = {
   -- clangd = {},
@@ -400,6 +401,7 @@ local plugins_overrides = {
     opts = {},
   },
 }
+
 local plugins_qol = {
   -- Session management
   {
@@ -598,6 +600,7 @@ local plugins_qol = {
     },
   },
 }
+
 local plugins_bundles = {
   -- Mini
   {
@@ -864,6 +867,7 @@ local plugins_bundles = {
     end,
   },
 }
+
 local plugins_themes = {
   {
     'rebelot/kanagawa.nvim',
@@ -980,6 +984,7 @@ local plugins_themes = {
     end,
   },
 }
+
 local plugins_bars = {
   -- Statusline
   {
@@ -1334,6 +1339,7 @@ local plugins_editor = {
     end,
   },
 }
+
 local plugins_editor_navigation = {
   -- Jumplists & Bookmarks
   {
@@ -1617,6 +1623,7 @@ local plugins_editor_navigation = {
     -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if prefer nvim-web-devicons
   },
 }
+
 local plugins_editor_indicators = {
   -- Gitsigns
   {
@@ -1704,6 +1711,7 @@ local plugins_editor_indicators = {
     },
   },
 }
+
 local plugins_editor_languages = {
 
   -- S: Editor: Formatting
