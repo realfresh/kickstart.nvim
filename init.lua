@@ -1,3 +1,6 @@
+-- TODO:
+-- - Repeat last command
+
 ----------------------------------------------------------------
 -- NOTE: Utilities
 ----------------------------------------------------------------
@@ -26,171 +29,148 @@ end
 -- NOTE: Configurations
 ----------------------------------------------------------------
 
---  See `:help vim.opt`
---  For more options, you can see `:help option-list`
+-- S: Mouse
 
-local function config_main()
-  -- Enable mouse mode, can be useful for resizing splits for example!
-  vim.opt.mouse = 'a'
-  vim.opt.mousescroll = 'ver:3,hor:4'
-  vim.opt.mousemodel = 'popup_setpos'
-  -- Don't show the mode, since it's already in the status line
-  vim.opt.showmode = false
-  -- Set to true if you have a Nerd Font installed and selected in the terminal
-  vim.g.have_nerd_font = true
+vim.opt.mouse = 'a'
+vim.opt.mousescroll = 'ver:3,hor:4'
+vim.opt.mousemodel = 'popup_setpos'
 
-  -- Sync clipboard between OS and Neovim.
-  --  Schedule the setting after `UiEnter` because it can increase startup-time.
-  --  Remove this option if you want your OS clipboard to remain independent.
-  --  See `:help 'clipboard'`
-  vim.schedule(function()
-    vim.opt.clipboard = 'unnamedplus'
-  end)
+-- S: Fonts
 
-  -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
-  vim.opt.ignorecase = true
-  vim.opt.smartcase = true
+vim.g.have_nerd_font = true
 
-  -- Decrease update time
-  vim.opt.updatetime = 250
+-- S: Clipboard
 
-  -- Decrease mapped sequence wait time
-  vim.opt.timeoutlen = 300
+-- Sync clipboard between OS and Neovim.
+--  Schedule the setting after `UiEnter` because it can increase startup-time.
+vim.schedule(function()
+  vim.opt.clipboard = 'unnamedplus'
+end)
 
-  -- Session management options
-  vim.o.sessionoptions = 'blank,buffers,curdir,folds,globals,help,tabpages,winsize,winpos,terminal,localoptions'
+-- S: Search
 
-  -- Tab Line
-  vim.o.showtabline = 2
-end
+-- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
 
-local function config_editor()
-  -- Enable break indent
-  vim.opt.breakindent = true
+-- S: Editor
 
-  -- Save undo history
-  vim.opt.undofile = true
+-- Decrease update time
+vim.opt.updatetime = 250
 
-  -- Sets how neovim will display certain whitespace characters in the editor.
-  --  See `:help 'list'`
-  --  and `:help 'listchars'`
-  vim.opt.list = true
-  vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
-  vim.opt.fillchars:append { eob = ' ' }
+-- Decrease mapped sequence wait time
+vim.opt.timeoutlen = 300
 
-  -- Preview substitutions live, as you type!
-  vim.opt.inccommand = 'split'
+-- Session management options
+vim.o.sessionoptions = 'blank,buffers,curdir,folds,globals,help,tabpages,winsize,winpos,terminal'
 
-  -- Show which line your cursor is on
-  vim.opt.cursorline = true
+-- Enable break indent
+vim.opt.breakindent = true
 
-  -- Minimal number of screen lines to keep above and below the cursor.
-  vim.opt.scrolloff = 20
+-- Save undo history
+vim.opt.undofile = true
 
-  -- vim.opt.fillchars = { fold = ' ' }
-  -- vim.opt.foldmethod = 'indent'
-  -- vim.opt.foldenable = false
-  -- vim.opt.foldlevel = 99
-  -- g.markdown_folding = 1 -- enable markdown folding
+-- Whitespace characters
+vim.opt.list = true
+vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+vim.opt.fillchars:append { eob = ' ' }
 
-  -- Configure how new splits should be opened
-  vim.opt.splitright = true
-  vim.opt.splitbelow = true
+-- Preview substitutions live, as you type!
+vim.opt.inccommand = 'split'
 
-  -- Cursor
-  -- vim.opt.guicursor = {
-  --   -- 'n-v-c-sm:block', -- default
-  --   -- 'i-ci-ve:ver25', -- default
-  --   'n-v-c-sm:ver25-NormalCursor',
-  --   'i-ci-ve:ver25-InsertCursor',
-  --   'r-cr-o:hor20',
-  -- }
+-- Minimal number of screen lines to keep above and below the cursor.
+vim.opt.scrolloff = 20
 
-  -- NOTE: Columns
+-- Folding
+-- vim.opt.foldmethod = 'indent'
+-- vim.opt.foldenable = false
+-- vim.opt.foldlevel = 99
+-- g.markdown_folding = 1 -- enable markdown folding
 
-  -- Make line numbers default
-  vim.opt.number = true
-  -- You can also add relative line numbers, to help with jumping.
-  --  Experiment for yourself to see if you like it!
-  -- vim.opt.relativenumber = true
+-- Configure how new splits should be opened
+vim.opt.splitright = true
+vim.opt.splitbelow = true
 
-  -- Keep signcolumn on by default
-  vim.opt.signcolumn = 'auto'
+-- S: Indicators
 
-  -- Enable fold column
-  vim.opt.foldcolumn = 'auto'
-  -- Set fold level to 99 (effectively expanding all folds)
-  vim.opt.foldlevel = 99
-  -- Start with all folds expanded
-  vim.opt.foldlevelstart = 99
-  -- Use nvim-ufo provider
-  vim.opt.foldenable = true
+-- Disable 'mode' already in status line
+vim.opt.showmode = false
 
-  -- vim.opt.foldcolumn = 'auto:1'
-  -- vim.opt.signcolumn = 'auto'
+-- Tab Line
+vim.o.showtabline = 2
 
-  -- vim.opt.fillchars:append {
-  --   foldsep = '│', -- Fold separator
-  --   foldopen = '^', -- Mark for open folds
-  --   foldclose = '>', -- Mark for closed folds
-  -- }
-end
+-- Show which line your cursor is on
+vim.opt.cursorline = true
 
-local function config_keybinds()
-  -- See `:help vim.keymap.set()`
-  -- Set <space> as the leader key (see `:help mapleader`)
-  -- [note] Must happen before plugins are loaded (otherwise wrong leader will be used)
-  vim.g.mapleader = ' '
-  vim.g.maplocalleader = ','
+-- Cursor customization
+-- vim.opt.guicursor = {
+--   -- 'n-v-c-sm:block', -- default
+--   -- 'i-ci-ve:ver25', -- default
+--   'n-v-c-sm:ver25-NormalCursor',
+--   'i-ci-ve:ver25-InsertCursor',
+--   'r-cr-o:hor20',
+-- }
 
-  -- Clear highlights on search when pressing <Esc> in normal mode
-  --  See `:help hlsearch`
-  vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+-- S: Columns
 
-  -- Diagnostic keymaps
-  vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+-- Line number column
+vim.opt.number = true
 
-  -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
-  -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
-  -- is not what someone will guess without a bit more experience.
-  --
-  -- [note] This won't work in all terminal emulators/tmux/etc. Try your own mapping
-  -- or just use <C-\><C-n> to exit terminal mode
-  vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+-- Sign column
+vim.opt.signcolumn = 'auto'
 
-  -- TIP: Disable arrow keys in normal mode
-  -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
-  -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
-  -- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
-  -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
+-- Folding column
+vim.opt.foldcolumn = 'auto' -- Set fold level to 99 (effectively expanding all folds)
+vim.opt.foldlevel = 99 -- Start with all folds expanded
+vim.opt.foldlevelstart = 99
+vim.opt.foldenable = true
 
-  -- Keybinds to make split navigation easier.
-  --  Use CTRL+<hjkl> to switch between windows
-  --
-  --  See `:help wincmd` for a list of all window commands
-  vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-  vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-  vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-  vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+-- vim.opt.foldcolumn = 'auto:1'
+-- vim.opt.fillchars:append {
+--   foldsep = '│', -- Fold separator
+--   foldopen = '^', -- Mark for open folds
+--   foldclose = '>', -- Mark for closed folds
+-- }
 
-  -- Allow clipboard copy paste in neovim
-  vim.api.nvim_set_keymap('', '<D-v>', '+p<CR>', { noremap = true, silent = true })
-  vim.api.nvim_set_keymap('!', '<D-v>', '<C-R>+', { noremap = true, silent = true })
-  vim.api.nvim_set_keymap('t', '<D-v>', '<C-R>+', { noremap = true, silent = true })
-  vim.api.nvim_set_keymap('v', '<D-v>', '<C-R>+', { noremap = true, silent = true })
+-- S: Keybinds
 
-  -- Execute Lua
-  vim.keymap.set('n', '<leader><leader>x', '<cmd>source %<CR>')
-  vim.keymap.set('n', '<leader>x', ':.lua<CR>')
-  vim.keymap.set('v', '<leader>x', ':lua<CR>')
+-- Leaders
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ','
 
-  -- Editor Utils
-  vim.keymap.set('n', '<localleader>w', ':wqa<CR>', { desc = 'Quit All (Write)' })
-end
+-- Clear highlights on search when pressing <Esc> in normal mode
+vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
-config_main()
-config_editor()
-config_keybinds()
+-- Diagnostic keymaps
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+
+-- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
+-- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
+-- is not what someone will guess without a bit more experience.
+--
+-- [note] This won't work in all terminal emulators/tmux/etc. Try your own mapping
+-- or just use <C-\><C-n> to exit terminal mode
+vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+
+-- Keybinds to make split navigation easier.
+vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+-- Allow clipboard copy paste in neovim
+vim.api.nvim_set_keymap('', '<D-v>', '+p<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('!', '<D-v>', '<C-R>+', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('t', '<D-v>', '<C-R>+', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<D-v>', '<C-R>+', { noremap = true, silent = true })
+
+-- Execute Lua
+vim.keymap.set('n', '<leader><leader>x', '<cmd>source %<CR>', { desc = 'Lua: execute current file' })
+vim.keymap.set('n', '<leader>x', ':.lua<CR>')
+vim.keymap.set('v', '<leader>x', ':lua<CR>')
+
+-- Editor Utils
+vim.keymap.set('n', '<localleader>w', ':wqa<CR>', { desc = 'Quit All (Write)' })
 
 ----------------------------------------------------------------
 --  NOTE:  GUI - Neovide
@@ -1725,6 +1705,7 @@ local plugins_editor_indicators = {
   },
 }
 local plugins_editor_languages = {
+
   -- S: Editor: Formatting
 
   {
@@ -2070,6 +2051,55 @@ local plugins_editor_languages = {
           end,
         },
       }
+    end,
+  },
+
+  -- LSP Enhance
+  {
+    'nvimdev/lspsaga.nvim',
+    enabled = false,
+    -- event = 'LspAttach',
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter', -- optional
+      'nvim-tree/nvim-web-devicons', -- optional
+    },
+    config = function()
+      -- Options: https://github.com/nvimdev/lspsaga.nvim/blob/main/lua/lspsaga/init.lua
+
+      require('lspsaga').setup {
+        hover = {
+          max_width = 0.9,
+          max_height = 0.8,
+          open_link = 'gx',
+          open_cmd = '!chrome',
+        },
+        symbol_in_winbar = {
+          enable = false,
+          hide_keyword = true,
+          show_file = false,
+        },
+        lightbulb = {
+          enable = true,
+        },
+      }
+
+      vim.keymap.set('n', 'K', '<CMD>Lspsaga hover_doc<CR>')
+      vim.keymap.set('n', '\\', '<CMD>Lspsaga hover_doc<CR>')
+
+      -- local hover = require 'lspsaga.hover'
+      -- local hover_visible = false
+      --
+      -- vim.keymap.set({ 'n', 'i', 'v' }, '<C-LeftMouse>', function()
+      --   hover_visible = true
+      --   hover.render_hover_doc {}
+      -- end, { noremap = false })
+      --
+      -- vim.keymap.set({ 'n', 'i', 'v' }, '<LeftMouse>', function()
+      --   if hover_visible then
+      --     hover_visible = false
+      --     hover.render_hover_doc {}
+      --   end
+      -- end, { noremap = false })
     end,
   },
 
