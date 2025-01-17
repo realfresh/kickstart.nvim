@@ -1,5 +1,11 @@
 -- TODO:
 -- - Repeat last command
+-- - Window broders
+-- - Popup borders
+-- - LSP popup visuals
+
+-- Global state for the configuration
+local gstate = {}
 
 ----------------------------------------------------------------
 -- NOTE: Utilities
@@ -32,8 +38,17 @@ end
 -- S: Mouse
 
 vim.opt.mouse = 'a'
-vim.opt.mousescroll = 'ver:3,hor:4'
+vim.opt.mousescroll = 'ver:3,hor:32'
 vim.opt.mousemodel = 'popup_setpos'
+vim.opt.scrolloff = 0
+vim.opt_local.scrolloff = 0
+
+vim.api.nvim_create_autocmd('VimEnter', {
+  callback = function()
+    vim.opt.scrolloff = 0
+    vim.opt_local.scrolloff = 0
+  end,
+})
 
 -- S: Fonts
 
@@ -55,6 +70,9 @@ vim.opt.smartcase = true
 
 -- S: Editor
 
+-- Disable line wrapping
+vim.opt.wrap = false
+
 -- Decrease update time
 vim.opt.updatetime = 250
 
@@ -62,7 +80,10 @@ vim.opt.updatetime = 250
 vim.opt.timeoutlen = 300
 
 -- Session management options
-vim.o.sessionoptions = 'blank,buffers,curdir,folds,globals,help,tabpages,winsize,winpos,terminal'
+--  -> my attempt
+-- vim.o.sessionoptions = 'blank,buffers,curdir,folds,globals,tabpages,terminal,winsize,winpos'
+--  -> auto-session recommend session opts
+vim.o.sessionoptions = 'blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions'
 
 -- Enable break indent
 vim.opt.breakindent = true
@@ -205,9 +226,7 @@ end
 --  NOTE:  Autcommands
 ----------------------------------------------------------------
 
---  See `:help lua-guide-autocommands`
-
--- Autosave on focus lost
+-- Autosave: on focus lost
 local autocmd_autosave = function()
   vim.api.nvim_create_autocmd('FocusLost', {
     desc = 'Autosave on focus lost',
@@ -216,7 +235,7 @@ local autocmd_autosave = function()
   })
 end
 
--- Highlight when yanking (copying) text, see `:help vim.highlight.on_yank()`
+-- Highlight: when yanking text
 local autocmd_yank_highlight = function()
   vim.api.nvim_create_autocmd('TextYankPost', {
     desc = 'Highlight when yanking (copying) text',
@@ -270,7 +289,8 @@ local lazyicons = vim.g.have_nerd_font and {}
 --  NOTE:  Plugin Variables
 ----------------------------------------------------------------
 
--- [Keybinds]
+-- S: Keybinds
+
 -- Document existing key chains
 local which_key_spec = {
   -- { '<leader>`', group = 'Global' },
@@ -293,18 +313,55 @@ local which_key_spec = {
   -- { '<leader>w', group = '[W]orkspace' },
 }
 
--- [Themes]
+-- S: Themes
+
 -- 'ayu-dark' 'adwaita' 'kanagawa-wave'
 local color_scheme = 'evergarden'
 local colors_get = function()
-  return require('evergarden').colors()
+  return require('evergarden.colors').colors
 end
 
--- [LSP]
+-- To get colors
+--> :lua print(vim.inspect(require('evergarden.colors').colors))
+local colors_evergarden = {
+  aqua = '#93C9A1',
+  base = '#232A2E',
+  blue = '#9BB5CF',
+  crust = '#171C1F',
+  green = '#B2C98F',
+  mantle = '#1C2225',
+  orange = '#E69875',
+  overlay0 = '#617377',
+  overlay1 = '#738A8B',
+  overlay2 = '#839E9A',
+  pink = '#E3A8D1',
+  purple = '#D6A0D1',
+  red = '#E67E80',
+  skye = '#97C9C3',
+  softbase = '#2B3538',
+  subtext0 = '#94AAA0',
+  subtext1 = '#CACCBE',
+  surface0 = '#313B40',
+  surface1 = '#3D494D',
+  surface2 = '#4F5E62',
+  text = '#DDDECF',
+  yellow = '#DBBC7F',
+}
+
+local colors_custom = {
+  background = '#0b1115',
+}
+
+-- S: Things To Install
+
 -- Find LSP servers at:
 -- https://github.com/williamboman/mason-lspconfig.nvim?tab=readme-ov-file#available-lsp-servers
+--
+-- Find list of tools available via Mason Tool Installer:
+-- `:Mason`
 
-local lsp_servers = {
+-- Tools to install via Mason (with their LSP config)
+local install_tools_lsp = {
   -- clangd = {},
   -- gopls = {},
   -- pyright = {},
@@ -315,7 +372,6 @@ local lsp_servers = {
   ansiblels = {
     settings = {},
   },
-
   bashls = {
     settings = {},
   },
@@ -390,6 +446,61 @@ local lsp_servers = {
   },
 }
 
+-- Extra tools to install via Mason (no config required)
+local install_tools_extras = {
+  'ansible-lint',
+  'cspell',
+  'eslint_d',
+  'goimports',
+  'prettierd',
+  'shellcheck',
+  'shfmt',
+  'stylua',
+}
+
+-- S: LSP
+
+-- Disable "format_on_save lsp_fallback" for languages that don't
+-- have a well standardized coding style. You can add additional
+-- languages here or re-enable it for the disabled ones.
+local lsp_format_on_save_disable = {
+  c = true,
+  cpp = true,
+  javascript = true,
+  typescript = true,
+  json = true,
+}
+
+-- S: Formatting
+
+local formatters_by_ft = {
+  -- Conform will run multiple formatters sequentially
+  -- You can also customize some of the format options for the filetype
+  -- You can use 'stop_after_first' to run the first available formatter from the list
+  lua = { 'stylua' },
+  go = { 'goimports', 'gofmt' },
+  rust = { 'rustfmt', lsp_format = 'fallback' },
+  bash = { 'shfmt', lsp_format = 'fallback' },
+  -- Web
+  css = { 'prettierd', 'prettier', stop_after_first = true },
+  scss = { 'prettierd', 'prettier', stop_after_first = true },
+  less = { 'prettierd', 'prettier', stop_after_first = true },
+  html = { 'prettierd', 'prettier', stop_after_first = true },
+  -- Config
+  json = { 'prettierd', 'prettier', stop_after_first = true },
+  jsonc = { 'prettierd', 'prettier', stop_after_first = true },
+  yaml = { 'prettierd', 'prettier', stop_after_first = true },
+  -- Documentation
+  markdown = { 'prettierd', 'prettier', stop_after_first = true },
+  -- Typescript / Javascript
+  javascript = { 'prettierd', 'prettier', stop_after_first = true },
+  typescript = { 'prettierd', 'prettier', stop_after_first = true },
+  javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+  typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+  -- Database
+  graphql = { 'prettierd', 'prettier', stop_after_first = true },
+}
+
 ----------------------------------------------------------------
 --  NOTE:  Plugin List
 ----------------------------------------------------------------
@@ -407,6 +518,10 @@ local plugins_qol = {
   {
     'rmagatti/auto-session',
     lazy = false,
+    dependencies = {
+      -- Load plugins required for session hooks
+      'shortcuts/no-neck-pain.nvim',
+    },
     keys = {
       -- Will use Telescope if installed or a vim.ui.select picker otherwise
       { '<leader>pr', '<cmd>SessionSearch<CR>', desc = 'Session search' },
@@ -417,8 +532,25 @@ local plugins_qol = {
     ---@module "auto-session"
     ---@type AutoSession.Config
     opts = {
+      enabled = true, -- Enables/disables auto creating, saving and restoring
+      auto_save = true, -- Enables/disables auto saving session on exit
+      auto_restore = true, -- Enables/disables auto restoring session on start
+      auto_create = true, -- Enables/disables auto creating new session files. Can take a function that should return true/false if a new session file should be created or not
+      continue_restore_on_error = true, -- Keep loading the session even if there's an error
+      show_auto_restore_notif = true, -- Whether to show a notification when auto-restoring
       suppressed_dirs = { '/', '~/', '~/Downloads' },
-      -- log_level = 'debug',
+      close_unsupported_windows = true,
+      -- Avoid issues with session saving and plugins that don't like it
+      -- See: https://github.com/shortcuts/no-neck-pain.nvim/issues/221#issuecomment-1986951083
+      bypass_session_save_file_types = {
+        '',
+        'no-neck-pain',
+        'neo-tree',
+        'noice',
+        'notify',
+        'fugitive',
+        'neotest-summary',
+      },
       session_lens = {
         load_on_setup = true, -- Initialize on startup (requires Telescope)
         theme_conf = { -- Pass through for Telescope theme options
@@ -440,6 +572,36 @@ local plugins_qol = {
           control_dir = vim.fn.stdpath 'data' .. '/auto_session/', -- Auto session control dir, for control files, like alternating between two sessions with session-lens
           control_filename = 'session_control.json', -- File name of the session control file
         },
+      },
+
+      -- [Hooks]
+      pre_save_cmds = {
+        function()
+          -- Remove empty side buffers before saving session
+          ---> check if `state` table exists and if `state.enabled` is true
+          local nnp = require 'no-neck-pain'
+          if nnp and nnp.state and nnp.state.enabled then
+            gstate.session_pre_save_nnp_disabled = true
+            nnp.disable()
+          end
+        end,
+      },
+      post_save_cmds = {
+        function()
+          -- Restore empty side buffers after saving session
+          if gstate.session_pre_save_nnp_disabled then
+            gstate.session_pre_save_nnp_disabled = false
+            local nnp = require 'no-neck-pain'
+            nnp.enable()
+          end
+        end,
+      },
+      post_restore_cmds = {
+        function()
+          -- Enable No Neck Pain after restoring session
+          local nnp = require 'no-neck-pain'
+          nnp.enable()
+        end,
       },
     },
   },
@@ -490,7 +652,7 @@ local plugins_qol = {
       -- do as well as how to actually do it!
 
       -- [[ Configure Telescope ]]
-      -- See `:help telescope` and `:help telescope.setup()`
+      -- See `:help telescope` and b :help telescope.setup()`
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
@@ -501,6 +663,11 @@ local plugins_qol = {
         --   },
         -- },
         -- pickers = {}
+        pickers = {
+          colorscheme = {
+            enable_preview = true,
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
@@ -599,6 +766,40 @@ local plugins_qol = {
       spec = which_key_spec,
     },
   },
+
+  -- Main window padding
+  {
+    'shortcuts/no-neck-pain.nvim',
+    lazy = false,
+    opts = {
+      width = 130,
+      autocmds = {
+        -- enableOnVimEnter = true,
+        enableOnTabEnter = true,
+      },
+      buffers = {
+        colors = {
+          -- blend = 0.2,
+        },
+        wo = {
+          wrap = false,
+        },
+      },
+      integrations = {
+        Nvimtree = {
+          reopen = true,
+          position = 'left',
+        },
+      },
+    },
+    keys = {
+      { '<leader>ept', ':NoNeckPain<CR>', desc = 'Toggle Padding (No Neck Pain)' },
+      { '<leader>epl', ':NoNeckPainToggleLeftSide<CR>', desc = 'Toggle Padding Left (No Neck Pain)' },
+      { '<leader>epr', ':NoNeckPainToggleRightSide<CR>', desc = 'Toggle Padding Right (No Neck Pain)' },
+      { '<leader>ep-', ':NoNeckPainWidthDown<CR>', desc = 'Less Padding (No Neck Pain)' },
+      { '<leader>ep=', ':NoNeckPainWidthUp<CR>', desc = 'More Padding (No Neck Pain)' },
+    },
+  },
 }
 
 local plugins_bundles = {
@@ -665,13 +866,10 @@ local plugins_bundles = {
       lazygit = { enabled = true },
       ---@class snacks.scroll.Config
       ---@field animate snacks.animate.Config
-      scroll = {
-        spamming = 10, -- threshold for spamming detection
-        animate = {
-          duration = { step = 10, total = 250 },
-          easing = 'outSine',
-        },
-      },
+      -- scroll = {
+      --   spamming = 10, -- threshold for spamming detection
+      --   animate = { duration = { step = 10, total = 250 }, easing = 'outSine' },
+      -- },
       scope = { enabled = true },
       statuscolumn = { enabled = true },
       words = { enabled = true },
@@ -971,7 +1169,24 @@ local plugins_themes = {
         -- https://github.com/comfysage/evergarden?tab=readme-ov-file#configuration
         -- transparent_background = true,
         variant = 'hard', -- 'hard'|'medium'|'soft'
-        overrides = {}, -- add custom overrides
+        style = {
+          types = {},
+          keyword = { 'bold' },
+          comment = {},
+          tabline = { 'reverse' },
+          search = { 'italic' },
+          incsearch = { 'reverse' },
+          sign = { highlight = false },
+        },
+        overrides = {
+          -- #0b1115 - dark
+          -- #10161a - medium
+          Normal = { bg = colors_custom.background, fg = colors_evergarden.text },
+          -- Keyword = {
+          --   -- fg = '#ce96de',
+          --   -- bg = '#ae45be',
+          -- },
+        },
       }
 
       vim.cmd 'colorscheme evergarden'
@@ -983,6 +1198,11 @@ local plugins_themes = {
       -- ]]
     end,
   },
+
+  { 'marko-cerovac/material.nvim' },
+  { 'ramojus/mellifluous.nvim' },
+  { 'rose-pine/neovim', name = 'rose-pine' },
+  { 'vague2k/vague.nvim' },
 }
 
 local plugins_bars = {
@@ -1123,39 +1343,6 @@ local plugins_bars = {
 local plugins_editor = {
   -- Detect tabstop and shiftwidth
   'tpope/vim-sleuth',
-
-  -- Main window padding
-  {
-    'shortcuts/no-neck-pain.nvim',
-    dependencies = { 'folke/snacks.nvim' },
-    lazy = false,
-    config = function()
-      require('no-neck-pain').setup {
-        width = 120,
-        autocmds = {
-          enableOnVimEnter = true,
-          enableOnTabEnter = true,
-        },
-        integrations = {
-          Nvimtree = {
-            reopen = true,
-            position = 'left',
-          },
-        },
-      }
-
-      -- print 'No Neck Pain loaded'
-      -- Snacks.notify 'No Neck Pain loaded'
-      -- vim.cmd ':NoNeckPain<CR>'
-    end,
-    keys = {
-      { '<leader>ept', ':NoNeckPain<CR>', desc = 'Toggle Padding (No Neck Pain)' },
-      { '<leader>epl', ':NoNeckPainToggleLeftSide<CR>', desc = 'Toggle Padding Left (No Neck Pain)' },
-      { '<leader>epr', ':NoNeckPainToggleRightSide<CR>', desc = 'Toggle Padding Right (No Neck Pain)' },
-      { '<leader>epm', ':NoNeckPainWidthDown<CR>', desc = 'Increase Padding (No Neck Pain)' },
-      { '<leader>epl', ':NoNeckPainWidthUp<CR>', desc = 'Decrease Padding (No Neck Pain)' },
-    },
-  },
 
   -- Comments: Line & Block
   {
@@ -1396,232 +1583,6 @@ local plugins_editor_navigation = {
       require('nvim-tree').setup {}
     end,
   },
-
-  -- Files: NeoTree
-  {
-    'nvim-neo-tree/neo-tree.nvim',
-    enabled = false,
-    branch = 'v3.x',
-    dependencies = {
-      'nvim-lua/plenary.nvim',
-      'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
-      'MunifTanjim/nui.nvim',
-      '3rd/image.nvim', -- Optional image support in preview window: See `# Preview Mode` for more information
-    },
-    keys = {
-      { '<leader>e', ':Neotree<CR>', desc = 'Neotree' },
-    },
-  },
-
-  -- Files: Oil
-  {
-    'stevearc/oil.nvim',
-    enabled = false,
-    ---@module 'oil'
-    ---@type oil.SetupOpts
-    opts = {
-      default_file_explorer = true,
-      -- Id is automatically added at the beginning, and name at the end
-      -- See :help oil-columns
-      columns = {
-        'icon',
-        -- "permissions",
-        -- "size",
-        -- "mtime",
-      },
-      -- Buffer-local options to use for oil buffers
-      buf_options = {
-        buflisted = false,
-        bufhidden = 'hide',
-      },
-      -- Window-local options to use for oil buffers
-      win_options = {
-        wrap = false,
-        signcolumn = 'no',
-        cursorcolumn = false,
-        foldcolumn = '0',
-        spell = false,
-        list = false,
-        conceallevel = 3,
-        concealcursor = 'nvic',
-      },
-      -- Send deleted files to the trash instead of permanently deleting them (:help oil-trash)
-      delete_to_trash = false,
-      -- Skip the confirmation popup for simple operations (:help oil.skip_confirm_for_simple_edits)
-      skip_confirm_for_simple_edits = false,
-      -- Selecting a new/moved/renamed file or directory will prompt you to save changes first
-      -- (:help prompt_save_on_select_new_entry)
-      prompt_save_on_select_new_entry = true,
-      -- Oil will automatically delete hidden buffers after this delay
-      -- You can set the delay to false to disable cleanup entirely
-      -- Note that the cleanup process only starts when none of the oil buffers are currently displayed
-      cleanup_delay_ms = 2000,
-      lsp_file_methods = {
-        -- Enable or disable LSP file operations
-        enabled = true,
-        -- Time to wait for LSP file operations to complete before skipping
-        timeout_ms = 1000,
-        -- Set to true to autosave buffers that are updated with LSP willRenameFiles
-        -- Set to "unmodified" to only save unmodified buffers
-        autosave_changes = false,
-      },
-      -- Constrain the cursor to the editable parts of the oil buffer
-      -- Set to `false` to disable, or "name" to keep it on the file names
-      constrain_cursor = 'editable',
-      -- Set to true to watch the filesystem for changes and reload oil
-      watch_for_changes = false,
-      -- Keymaps in oil buffer. Can be any value that `vim.keymap.set` accepts OR a table of keymap
-      -- options with a `callback` (e.g. { callback = function() ... end, desc = "", mode = "n" })
-      -- Additionally, if it is a string that matches "actions.<name>",
-      -- it will use the mapping at require("oil.actions").<name>
-      -- Set to `false` to remove a keymap
-      -- See :help oil-actions for a list of all available actions
-      keymaps = {
-        ['g?'] = { 'actions.show_help', mode = 'n' },
-        ['<CR>'] = 'actions.select',
-        ['<C-s>'] = { 'actions.select', opts = { vertical = true } },
-        ['<C-h>'] = { 'actions.select', opts = { horizontal = true } },
-        ['<C-t>'] = { 'actions.select', opts = { tab = true } },
-        ['<C-p>'] = 'actions.preview',
-        ['<C-c>'] = { 'actions.close', mode = 'n' },
-        ['<C-l>'] = 'actions.refresh',
-        ['-'] = { 'actions.parent', mode = 'n' },
-        ['_'] = { 'actions.open_cwd', mode = 'n' },
-        ['`'] = { 'actions.cd', mode = 'n' },
-        ['~'] = { 'actions.cd', opts = { scope = 'tab' }, mode = 'n' },
-        ['gs'] = { 'actions.change_sort', mode = 'n' },
-        ['gx'] = 'actions.open_external',
-        ['g.'] = { 'actions.toggle_hidden', mode = 'n' },
-        ['g\\'] = { 'actions.toggle_trash', mode = 'n' },
-      },
-      -- Set to false to disable all of the above keymaps
-      use_default_keymaps = true,
-      view_options = {
-        -- Show files and directories that start with "."
-        show_hidden = false,
-        -- This function defines what is considered a "hidden" file
-        is_hidden_file = function(name, bufnr)
-          local m = name:match '^%.'
-          return m ~= nil
-        end,
-        -- This function defines what will never be shown, even when `show_hidden` is set
-        is_always_hidden = function(name, bufnr)
-          return false
-        end,
-        -- Sort file names with numbers in a more intuitive order for humans.
-        -- Can be "fast", true, or false. "fast" will turn it off for large directories.
-        natural_order = 'fast',
-        -- Sort file and directory names case insensitive
-        case_insensitive = false,
-        sort = {
-          -- sort order can be "asc" or "desc"
-          -- see :help oil-columns to see which columns are sortable
-          { 'type', 'asc' },
-          { 'name', 'asc' },
-        },
-        -- Customize the highlight group for the file name
-        highlight_filename = function(entry, is_hidden, is_link_target, is_link_orphan)
-          return nil
-        end,
-      },
-      -- Extra arguments to pass to SCP when moving/copying files over SSH
-      extra_scp_args = {},
-      -- EXPERIMENTAL support for performing file operations with git
-      git = {
-        -- Return true to automatically git add/mv/rm files
-        add = function(path)
-          return false
-        end,
-        mv = function(src_path, dest_path)
-          return false
-        end,
-        rm = function(path)
-          return false
-        end,
-      },
-      -- Configuration for the floating window in oil.open_float
-      float = {
-        -- Padding around the floating window
-        padding = 2,
-        max_width = 0,
-        max_height = 0,
-        border = 'rounded',
-        win_options = {
-          winblend = 0,
-        },
-        -- optionally override the oil buffers window title with custom function: fun(winid: integer): string
-        get_win_title = nil,
-        -- preview_split: Split direction: "auto", "left", "right", "above", "below".
-        preview_split = 'auto',
-        -- This is the config that will be passed to nvim_open_win.
-        -- Change values here to customize the layout
-        override = function(conf)
-          return conf
-        end,
-      },
-      -- Configuration for the file preview window
-      preview_win = {
-        -- Whether the preview window is automatically updated when the cursor is moved
-        update_on_cursor_moved = true,
-        -- How to open the preview window "load"|"scratch"|"fast_scratch"
-        preview_method = 'fast_scratch',
-        -- A function that returns true to disable preview on a file e.g. to avoid lag
-        disable_preview = function(filename)
-          return false
-        end,
-        -- Window-local options to use for preview window buffers
-        win_options = {},
-      },
-      -- Configuration for the floating action confirmation window
-      confirmation = {
-        -- Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
-        -- min_width and max_width can be a single value or a list of mixed integer/float types.
-        -- max_width = {100, 0.8} means "the lesser of 100 columns or 80% of total"
-        max_width = 0.9,
-        -- min_width = {40, 0.4} means "the greater of 40 columns or 40% of total"
-        min_width = { 40, 0.4 },
-        -- optionally define an integer/float for the exact width of the preview window
-        width = nil,
-        -- Height dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
-        -- min_height and max_height can be a single value or a list of mixed integer/float types.
-        -- max_height = {80, 0.9} means "the lesser of 80 columns or 90% of total"
-        max_height = 0.9,
-        -- min_height = {5, 0.1} means "the greater of 5 columns or 10% of total"
-        min_height = { 5, 0.1 },
-        -- optionally define an integer/float for the exact height of the preview window
-        height = nil,
-        border = 'rounded',
-        win_options = {
-          winblend = 0,
-        },
-      },
-      -- Configuration for the floating progress window
-      progress = {
-        max_width = 0.9,
-        min_width = { 40, 0.4 },
-        width = nil,
-        max_height = { 10, 0.9 },
-        min_height = { 5, 0.1 },
-        height = nil,
-        border = 'rounded',
-        minimized_border = 'none',
-        win_options = {
-          winblend = 0,
-        },
-      },
-      -- Configuration for the floating SSH window
-      ssh = {
-        border = 'rounded',
-      },
-      -- Configuration for the floating keymaps help window
-      keymaps_help = {
-        border = 'rounded',
-      },
-    },
-    -- Optional dependencies
-    dependencies = { { 'echasnovski/mini.icons', opts = {} } },
-    -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if prefer nvim-web-devicons
-  },
 }
 
 local plugins_editor_indicators = {
@@ -1739,14 +1700,11 @@ local plugins_editor_languages = {
       },
     },
     opts = {
+      formatters_by_ft = formatters_by_ft,
       notify_on_error = false,
       format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
         local lsp_format_opt
-        if disable_filetypes[vim.bo[bufnr].filetype] then
+        if lsp_format_on_save_disable[vim.bo[bufnr].filetype] then
           lsp_format_opt = 'never'
         else
           lsp_format_opt = 'fallback'
@@ -1756,14 +1714,6 @@ local plugins_editor_languages = {
           lsp_format = lsp_format_opt,
         }
       end,
-      formatters_by_ft = {
-        lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
-      },
     },
   },
 
@@ -1824,11 +1774,11 @@ local plugins_editor_languages = {
       vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
       vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
       vim.keymap.set('n', 'zm', require('ufo').closeFoldsWith) -- closeAllFolds == closeFoldsWith(0)
+
+      -- LSP Hover configured here to handle folded lines
       vim.keymap.set('n', 'K', function()
         local winid = require('ufo').peekFoldedLinesUnderCursor()
         if not winid then
-          -- choose one of coc.nvim and nvim lsp
-          vim.fn.CocActionAsync 'definitionHover' -- coc.nvim
           vim.lsp.buf.hover()
         end
       end)
@@ -2036,12 +1986,10 @@ local plugins_editor_languages = {
       require('mason').setup()
 
       -- Mason Tool Installer: Get the list of names for LSP servers to install
-      local mason_tools_lsp = vim.tbl_keys(lsp_servers or {})
+      local mason_tools_lsp = vim.tbl_keys(install_tools_lsp or {})
 
       -- Mason Tool Installer: Add any additional tools you want to install
-      local mason_tools = vim.list_extend(mason_tools_lsp, {
-        'stylua', -- Used to format Lua code
-      })
+      local mason_tools = vim.list_extend(mason_tools_lsp, install_tools_extras)
 
       require('mason-tool-installer').setup {
         ensure_installed = mason_tools,
@@ -2050,7 +1998,7 @@ local plugins_editor_languages = {
       require('mason-lspconfig').setup {
         handlers = {
           function(server_name)
-            local server = lsp_servers[server_name] or {}
+            local server = install_tools_lsp[server_name] or {}
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for ts_ls)
@@ -2059,6 +2007,56 @@ local plugins_editor_languages = {
           end,
         },
       }
+    end,
+  },
+
+  -- S: Enhancements
+
+  -- Trouble
+  {
+    'folke/trouble.nvim',
+    opts = {},
+    cmd = 'Trouble',
+    keys = {
+      {
+        '<leader>xx',
+        '<cmd>Trouble diagnostics toggle<cr>',
+        desc = 'Diagnostics (Trouble)',
+      },
+      {
+        '<leader>xX',
+        '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
+        desc = 'Buffer Diagnostics (Trouble)',
+      },
+      {
+        '<leader>cs',
+        '<cmd>Trouble symbols toggle focus=false<cr>',
+        desc = 'Symbols (Trouble)',
+      },
+      {
+        '<leader>cl',
+        '<cmd>Trouble lsp toggle focus=false win.position=right<cr>',
+        desc = 'LSP Definitions / references / ... (Trouble)',
+      },
+      {
+        '<leader>xL',
+        '<cmd>Trouble loclist toggle<cr>',
+        desc = 'Location List (Trouble)',
+      },
+      {
+        '<leader>xQ',
+        '<cmd>Trouble qflist toggle<cr>',
+        desc = 'Quickfix List (Trouble)',
+      },
+    },
+  },
+
+  -- LSP Completion Symbols
+  {
+    'onsails/lspkind-nvim',
+    dependencies = { 'neovim/nvim-lspconfig' },
+    config = function()
+      require('lspkind').init {}
     end,
   },
 
@@ -2210,17 +2208,20 @@ local plugins_editor_languages = {
         },
       },
       'saadparwaiz1/cmp_luasnip',
-
       -- Adds other completion capabilities.
       --  nvim-cmp does not ship with all sources by default. They are split
       --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
+      'onsails/lspkind-nvim',
     },
     config = function()
       -- See `:help cmp`
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
+      local lspkind = require 'lspkind'
+
+      local a = require
       luasnip.config.setup {}
 
       cmp.setup {
@@ -2230,7 +2231,36 @@ local plugins_editor_languages = {
           end,
         },
         completion = { completeopt = 'menu,menuone,noinsert' },
+        formatting = {
+          fields = { 'kind', 'menu', 'abbr' },
+          expandable_indicator = true,
+          format = lspkind.cmp_format {
+            -- defines how annotations are shown (default: symbols)
+            -- options: 'text', 'text_symbol', 'symbol_text', 'symbol'
+            mode = 'symbol_text',
+            -- default symbol map (default: 'default')
+            -- can be either 'default' (requires nerd-fonts font) or
+            -- 'codicons' for codicon preset (requires vscode-codicons font)
+            preset = 'default',
+            -- mode = 'symbol', -- show only symbol annotations
+            maxwidth = {
+              -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
+              -- can also be a function to dynamically calculate max width such as
+              -- menu = function() return math.floor(0.45 * vim.o.columns) end,
+              menu = 100, -- leading text (labelDetails)
+              abbr = 50, -- actual suggestion item
+            },
+            ellipsis_char = '...', -- when popup menu exceed maxwidth, the truncated part would show ellipsis_char instead (must define maxwidth first)
+            show_labelDetails = true, -- show labelDetails in menu. Disabled by default
 
+            -- The function below will be called before any actual modifications from lspkind
+            -- so that you can provide more controls on popup customization. (See [#30](https://github.com/onsails/lspkind-nvim/pull/30))
+            before = function(entry, vim_item)
+              -- ...
+              return vim_item
+            end,
+          },
+        },
         -- For an understanding of why these mappings were
         -- chosen, you will need to read `:help ins-completion`
         --
@@ -2298,6 +2328,24 @@ local plugins_editor_languages = {
           { name = 'path' },
         },
       }
+
+      -- Completion menu colors
+      -- gray
+      -- vim.api.nvim_set_hl(0, 'CmpItemAbbrDeprecated', { bg = 'NONE', strikethrough = true, fg = '#808080' })
+      -- blue
+      vim.api.nvim_set_hl(0, 'CmpItemAbbrMatch', { bg = 'NONE', fg = '#569CD6' })
+      vim.api.nvim_set_hl(0, 'CmpItemAbbrMatchFuzzy', { link = 'CmpIntemAbbrMatch' })
+      -- light blue
+      vim.api.nvim_set_hl(0, 'CmpItemKindVariable', { bg = 'NONE', fg = '#9CDCFE' })
+      vim.api.nvim_set_hl(0, 'CmpItemKindInterface', { link = 'CmpItemKindVariable' })
+      vim.api.nvim_set_hl(0, 'CmpItemKindText', { link = 'CmpItemKindVariable' })
+      -- pink
+      vim.api.nvim_set_hl(0, 'CmpItemKindFunction', { bg = 'NONE', fg = '#C586C0' })
+      vim.api.nvim_set_hl(0, 'CmpItemKindMethod', { link = 'CmpItemKindFunction' })
+      -- front
+      vim.api.nvim_set_hl(0, 'CmpItemKindKeyword', { bg = 'NONE', fg = '#D4D4D4' })
+      vim.api.nvim_set_hl(0, 'CmpItemKindProperty', { link = 'CmpItemKindKeyword' })
+      vim.api.nvim_set_hl(0, 'CmpItemKindUnit', { link = 'CmpItemKindKeyword' })
     end,
   },
 }
