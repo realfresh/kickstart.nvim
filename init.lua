@@ -3,9 +3,15 @@
 -- - Window broders
 -- - Popup borders
 -- - LSP popup visuals
+-- -> Lazyvim: Which key
+-- -> Lazyvim: Cmdline
 
 -- Global state for the configuration
-local gstate = {}
+local GS = {
+  plugin = {
+    no_neck_pain = false,
+  },
+}
 
 ----------------------------------------------------------------
 -- NOTE: Utilities
@@ -103,9 +109,9 @@ vim.opt.inccommand = 'split'
 vim.opt.scrolloff = 20
 
 -- Folding
--- vim.opt.foldmethod = 'indent'
--- vim.opt.foldenable = false
--- vim.opt.foldlevel = 99
+vim.opt.foldmethod = 'indent'
+vim.opt.foldenable = false
+vim.opt.foldlevel = 99
 -- g.markdown_folding = 1 -- enable markdown folding
 
 -- Configure how new splits should be opened
@@ -530,82 +536,89 @@ local plugins_qol = {
     },
     ---enables autocomplete for opts
     ---@module "auto-session"
-    ---@type AutoSession.Config
-    opts = {
-      enabled = true, -- Enables/disables auto creating, saving and restoring
-      auto_save = true, -- Enables/disables auto saving session on exit
-      auto_restore = true, -- Enables/disables auto restoring session on start
-      auto_create = true, -- Enables/disables auto creating new session files. Can take a function that should return true/false if a new session file should be created or not
-      continue_restore_on_error = true, -- Keep loading the session even if there's an error
-      show_auto_restore_notif = true, -- Whether to show a notification when auto-restoring
-      suppressed_dirs = { '/', '~/', '~/Downloads' },
-      close_unsupported_windows = true,
-      -- Avoid issues with session saving and plugins that don't like it
-      -- See: https://github.com/shortcuts/no-neck-pain.nvim/issues/221#issuecomment-1986951083
-      bypass_session_save_file_types = {
-        '',
-        'no-neck-pain',
-        'neo-tree',
-        'noice',
-        'notify',
-        'fugitive',
-        'neotest-summary',
-      },
-      session_lens = {
-        load_on_setup = true, -- Initialize on startup (requires Telescope)
-        theme_conf = { -- Pass through for Telescope theme options
-          -- layout_config = { -- As one example, can change width/height of picker
-          --   width = 0.8,    -- percent of window
-          --   height = 0.5,
-          -- },
-        },
-        previewer = false, -- File preview for session picker
+    ---@type function|AutoSession.Config
+    opts = function()
+      local pre_save_cmds = {}
+      local post_save_cmds = {}
+      local post_restore_cmds = {}
 
-        mappings = {
-          -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
-          delete_session = { 'i', '<C-D>' },
-          alternate_session = { 'i', '<C-S>' },
-          copy_session = { 'i', '<C-Y>' },
-        },
-
-        session_control = {
-          control_dir = vim.fn.stdpath 'data' .. '/auto_session/', -- Auto session control dir, for control files, like alternating between two sessions with session-lens
-          control_filename = 'session_control.json', -- File name of the session control file
-        },
-      },
-
-      -- [Hooks]
-      pre_save_cmds = {
-        function()
+      -- No Neck Pain integration
+      if GS.plugin.no_neck_pain then
+        table.insert(pre_save_cmds, function()
           -- Remove empty side buffers before saving session
           ---> check if `state` table exists and if `state.enabled` is true
           local nnp = require 'no-neck-pain'
           if nnp and nnp.state and nnp.state.enabled then
-            gstate.session_pre_save_nnp_disabled = true
+            GS.session_pre_save_nnp_disabled = true
             nnp.disable()
           end
-        end,
-      },
-      post_save_cmds = {
-        function()
+        end)
+
+        table.insert(post_save_cmds, function()
           -- Restore empty side buffers after saving session
-          if gstate.session_pre_save_nnp_disabled then
-            gstate.session_pre_save_nnp_disabled = false
+          if GS.session_pre_save_nnp_disabled then
+            GS.session_pre_save_nnp_disabled = false
             local nnp = require 'no-neck-pain'
             nnp.enable()
           end
-        end,
-      },
-      post_restore_cmds = {
-        function()
+        end)
+
+        table.insert(post_restore_cmds, function()
           -- Enable No Neck Pain after restoring session
           local nnp = require 'no-neck-pain'
           nnp.enable()
-        end,
-      },
-    },
-  },
+        end)
+      end
 
+      return {
+        enabled = true, -- Enables/disables auto creating, saving and restoring
+        auto_save = true, -- Enables/disables auto saving session on exit
+        auto_restore = true, -- Enables/disables auto restoring session on start
+        auto_create = true, -- Enables/disables auto creating new session files. Can take a function that should return true/false if a new session file should be created or not
+        continue_restore_on_error = true, -- Keep loading the session even if there's an error
+        show_auto_restore_notif = true, -- Whether to show a notification when auto-restoring
+        suppressed_dirs = { '/', '~/', '~/Downloads' },
+        close_unsupported_windows = true,
+        -- Avoid issues with session saving and plugins that don't like it
+        -- See: https://github.com/shortcuts/no-neck-pain.nvim/issues/221#issuecomment-1986951083
+        bypass_session_save_file_types = {
+          '',
+          'no-neck-pain',
+          'neo-tree',
+          'noice',
+          'notify',
+          'fugitive',
+          'neotest-summary',
+        },
+        session_lens = {
+          load_on_setup = true, -- Initialize on startup (requires Telescope)
+          theme_conf = { -- Pass through for Telescope theme options
+            -- layout_config = { -- As one example, can change width/height of picker
+            --   width = 0.8,    -- percent of window
+            --   height = 0.5,
+            -- },
+          },
+          previewer = false, -- File preview for session picker
+
+          mappings = {
+            -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
+            delete_session = { 'i', '<C-D>' },
+            alternate_session = { 'i', '<C-S>' },
+            copy_session = { 'i', '<C-Y>' },
+          },
+
+          session_control = {
+            control_dir = vim.fn.stdpath 'data' .. '/auto_session/', -- Auto session control dir, for control files, like alternating between two sessions with session-lens
+            control_filename = 'session_control.json', -- File name of the session control file
+          },
+        },
+        -- [Hooks]
+        pre_save_cmds = pre_save_cmds,
+        post_save_cmds = post_save_cmds,
+        post_restore_cmds = post_restore_cmds,
+      }
+    end,
+  },
   -- Telescope: Fuzzy Finder
   {
     'nvim-telescope/telescope.nvim',
@@ -770,6 +783,7 @@ local plugins_qol = {
   -- Main window padding
   {
     'shortcuts/no-neck-pain.nvim',
+    enabled = GS.plugin.no_neck_pain,
     lazy = false,
     opts = {
       width = 130,
@@ -1763,7 +1777,7 @@ local plugins_editor_languages = {
 
   {
     'kevinhwang91/nvim-ufo',
-    enabled = true,
+    enabled = false,
     dependencies = {
       'kevinhwang91/promise-async',
       'nvim-treesitter/nvim-treesitter',
@@ -2405,7 +2419,7 @@ local plugins_editor_languages = {
   },
 }
 
-local plugins_list = util_merge_tables_list(
+require('lazy').setup({
   plugins_overrides,
   plugins_qol,
   plugins_bundles,
@@ -2414,10 +2428,8 @@ local plugins_list = util_merge_tables_list(
   plugins_editor,
   plugins_editor_navigation,
   plugins_editor_indicators,
-  plugins_editor_languages
-)
-
-require('lazy').setup(plugins_list, {
+  plugins_editor_languages,
+}, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
     -- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
