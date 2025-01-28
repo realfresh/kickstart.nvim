@@ -10,6 +10,7 @@
 local GS = {
   plugin = {
     no_neck_pain = false,
+    ufo = true,
   },
 }
 
@@ -86,10 +87,11 @@ vim.opt.updatetime = 250
 vim.opt.timeoutlen = 300
 
 -- Session management options
---  -> my attempt
 -- vim.o.sessionoptions = 'blank,buffers,curdir,folds,globals,tabpages,terminal,winsize,winpos'
+local sessionopts_basic = 'blank,buffers,curdir,folds,help,tabpages,terminal,winsize,winpos'
+local sessionopts_autosession = 'blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions'
 --  -> auto-session recommend session opts
-vim.o.sessionoptions = 'blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions'
+vim.o.sessionoptions = sessionopts_basic
 
 -- Enable break indent
 vim.opt.breakindent = true
@@ -108,15 +110,28 @@ vim.opt.inccommand = 'split'
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 20
 
--- Folding
-vim.opt.foldmethod = 'indent'
-vim.opt.foldenable = false
-vim.opt.foldlevel = 99
--- g.markdown_folding = 1 -- enable markdown folding
-
 -- Configure how new splits should be opened
 vim.opt.splitright = true
 vim.opt.splitbelow = true
+
+-- S: Folding
+
+vim.opt.foldcolumn = '1' -- UFO recommended
+vim.opt.foldmethod = 'indent'
+vim.opt.foldlevel = 99 -- Start with all folds expanded
+vim.opt.foldenable = true
+
+-- vim.opt.foldcolumn = 'auto:1'
+-- vim.opt.foldcolumn = 'auto' -- Set fold level to 99 (effectively expanding all folds)
+-- vim.opt.foldlevelstart = 99
+
+-- vim.opt.fillchars:append {
+--   foldsep = '│', -- Fold separator
+--   foldopen = '^', -- Mark for open folds
+--   foldclose = '>', -- Mark for closed folds
+-- }
+
+-- g.markdown_folding = 1 -- enable markdown folding
 
 -- S: Indicators
 
@@ -145,19 +160,6 @@ vim.opt.number = true
 
 -- Sign column
 vim.opt.signcolumn = 'auto'
-
--- Folding column
-vim.opt.foldcolumn = 'auto' -- Set fold level to 99 (effectively expanding all folds)
-vim.opt.foldlevel = 99 -- Start with all folds expanded
-vim.opt.foldlevelstart = 99
-vim.opt.foldenable = true
-
--- vim.opt.foldcolumn = 'auto:1'
--- vim.opt.fillchars:append {
---   foldsep = '│', -- Fold separator
---   foldopen = '^', -- Mark for open folds
---   foldclose = '>', -- Mark for closed folds
--- }
 
 -- S: Keybinds
 
@@ -367,7 +369,7 @@ local colors_custom = {
 -- `:Mason`
 
 -- Tools to install via Mason (with their LSP config)
-local install_tools_lsp = {
+local mason_tools_lsp = {
   -- clangd = {},
   -- gopls = {},
   -- pyright = {},
@@ -453,7 +455,7 @@ local install_tools_lsp = {
 }
 
 -- Extra tools to install via Mason (no config required)
-local install_tools_extras = {
+local mason_tools_extra = {
   'ansible-lint',
   'cspell',
   'eslint_d',
@@ -463,6 +465,9 @@ local install_tools_extras = {
   'shfmt',
   'stylua',
 }
+
+local mason_tools_lsp_keys = vim.tbl_keys(mason_tools_lsp or {})
+local mason_tools_keys = vim.list_extend(mason_tools_lsp_keys, mason_tools_extra)
 
 -- S: LSP
 
@@ -1777,40 +1782,28 @@ local plugins_editor_languages = {
 
   {
     'kevinhwang91/nvim-ufo',
-    enabled = false,
+    enabled = GS.plugin.ufo,
     dependencies = {
       'kevinhwang91/promise-async',
       'nvim-treesitter/nvim-treesitter',
       'neovim/nvim-lspconfig',
     },
     config = function()
+      local ufo = require 'ufo'
+      local ufo_default_providers = { 'treesitter', 'indent' }
+
       -- Using ufo provider need remap `zR` and `zM`
-      vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
-      vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
-      vim.keymap.set('n', 'zm', require('ufo').closeFoldsWith) -- closeAllFolds == closeFoldsWith(0)
+      vim.keymap.set('n', 'zR', ufo.openAllFolds)
+      vim.keymap.set('n', 'zM', ufo.closeAllFolds)
+      vim.keymap.set('n', 'zm', ufo.closeFoldsWith) -- closeAllFolds == closeFoldsWith(0)
 
       -- LSP Hover configured here to handle folded lines
       vim.keymap.set('n', 'K', function()
-        local winid = require('ufo').peekFoldedLinesUnderCursor()
+        local winid = ufo.peekFoldedLinesUnderCursor()
         if not winid then
           vim.lsp.buf.hover()
         end
       end)
-
-      local capabilities = vim.lsp.protocol.make_client_capabilities()
-      capabilities.textDocument.foldingRange = {
-        dynamicRegistration = false,
-        lineFoldingOnly = true,
-      }
-      local language_servers = require('lspconfig').util.available_servers() -- or list servers manually like {'gopls', 'clangd'}
-      for _, ls in ipairs(language_servers) do
-        require('lspconfig')[ls].setup {
-          capabilities = capabilities,
-          -- you can add other fields for setting up lsp server in this table
-        }
-      end
-
-      local ufo = require 'ufo'
 
       -- Configure UFO
       ufo.setup {
@@ -1827,7 +1820,7 @@ local plugins_editor_languages = {
         },
         enable_fold_indicator = false,
         provider_selector = function(bufnr, filetype, buftype)
-          return { 'treesitter', 'indent' }
+          return ufo_default_providers
         end,
       }
     end,
@@ -1999,20 +1992,17 @@ local plugins_editor_languages = {
       --  You can press `g?` for help in this menu.
       require('mason').setup()
 
-      -- Mason Tool Installer: Get the list of names for LSP servers to install
-      local mason_tools_lsp = vim.tbl_keys(install_tools_lsp or {})
-
-      -- Mason Tool Installer: Add any additional tools you want to install
-      local mason_tools = vim.list_extend(mason_tools_lsp, install_tools_extras)
-
       require('mason-tool-installer').setup {
-        ensure_installed = mason_tools,
+        ensure_installed = mason_tools_keys,
       }
 
+      ---@diagnostic disable-next-line: missing-fields
       require('mason-lspconfig').setup {
+        -- automatic_installation = true,
+        -- ensure_installed = mason_tools_lsp_keys,
         handlers = {
           function(server_name)
-            local server = install_tools_lsp[server_name] or {}
+            local server = mason_tools_lsp[server_name] or {}
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for ts_ls)
