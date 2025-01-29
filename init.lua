@@ -6,14 +6,6 @@
 -- -> Lazyvim: Which key
 -- -> Lazyvim: Cmdline
 
--- Global state for the configuration
-local GS = {
-  plugin = {
-    no_neck_pain = false,
-    ufo = true,
-  },
-}
-
 local options = require '1_options'
 local plugins = require '2_plugins'
 local keymaps = require '3_keymaps'

@@ -1,73 +1,6 @@
-local utils = require 'utils'
--- Global state for the configuration
-local GS = {
-  plugin = {
-    no_neck_pain = false,
-    ufo = true,
-  },
-}
--- S: Keybinds
-
--- Document existing key chains
-local which_key_spec = {
-  -- { '<leader>`', group = 'Global' },
-  { '<leader>b', group = '[B]uffers' },
-  { '<leader>bd', group = '[D]elete' },
-  { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
-  { '<leader>cc', group = '[C]ursors', mode = { 'n', 'x' } },
-  { '<leader>e', group = '[E]ditor' },
-  { '<leader>g', group = '[G]it' },
-  { '<leader>gh', group = '[G]it Hunk' },
-  -- { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
-  { '<leader>l', group = '[L]SP' },
-  { '<leader>o', group = '[O]ther' },
-  { '<leader>p', group = '[P]rojects (sessions)' },
-  { '<leader>r', group = '[R]ename' },
-  { '<leader>s', group = '[S]earch' },
-  { '<leader>t', group = '[T]ab' },
-  { '<leader>z', group = ' Editor' },
-  -- { '<leader>d', group = '[D]ocument' },
-  -- { '<leader>w', group = '[W]orkspace' },
-}
-
--- S: Themes
-
--- 'ayu-dark' 'adwaita' 'kanagawa-wave'
-local color_scheme = 'evergarden'
-local colors_get = function()
-  return require('evergarden.colors').colors
-end
-
--- To get colors
---> :lua print(vim.inspect(require('evergarden.colors').colors))
-local colors_evergarden = {
-  aqua = '#93C9A1',
-  base = '#232A2E',
-  blue = '#9BB5CF',
-  crust = '#171C1F',
-  green = '#B2C98F',
-  mantle = '#1C2225',
-  orange = '#E69875',
-  overlay0 = '#617377',
-  overlay1 = '#738A8B',
-  overlay2 = '#839E9A',
-  pink = '#E3A8D1',
-  purple = '#D6A0D1',
-  red = '#E67E80',
-  skye = '#97C9C3',
-  softbase = '#2B3538',
-  subtext0 = '#94AAA0',
-  subtext1 = '#CACCBE',
-  surface0 = '#313B40',
-  surface1 = '#3D494D',
-  surface2 = '#4F5E62',
-  text = '#DDDECF',
-  yellow = '#DBBC7F',
-}
-
-local colors_custom = {
-  background = '#0b1115',
-}
+local C = require 'config'
+local KM = require '3_keymaps'
+local U = require 'utils'
 
 -- S: Things To Install
 
@@ -221,13 +154,13 @@ local formatters_by_ft = {
   graphql = { 'prettierd', 'prettier', stop_after_first = true },
 }
 
-----------------------------------------------------------------
---  NOTE:  Plugin List
-----------------------------------------------------------------
-
 local M = {}
 
 M.setup = function()
+  ----------------------------------------------------------------
+  --  NOTE:  Plugin List
+  ----------------------------------------------------------------
+
   local plugins_overrides = {
     -- Input & Select
     {
@@ -241,10 +174,7 @@ M.setup = function()
     {
       'rmagatti/auto-session',
       lazy = false,
-      dependencies = {
-        -- Load plugins required for session hooks
-        'shortcuts/no-neck-pain.nvim',
-      },
+      dependencies = {},
       keys = {
         -- Will use Telescope if installed or a vim.ui.select picker otherwise
         { '<leader>pr', '<cmd>SessionSearch<CR>', desc = 'Session search' },
@@ -260,31 +190,31 @@ M.setup = function()
         local post_restore_cmds = {}
 
         -- No Neck Pain integration
-        if GS.plugin.no_neck_pain then
+        if U.plugin_enabled 'no-neck-pain' then
           table.insert(pre_save_cmds, function()
             -- Remove empty side buffers before saving session
             ---> check if `state` table exists and if `state.enabled` is true
             local nnp = require 'no-neck-pain'
             if nnp and nnp.state and nnp.state.enabled then
-              GS.session_pre_save_nnp_disabled = true
+              C.sessions.pre_save_nnp_disabled = true
               nnp.disable()
             end
           end)
 
           table.insert(post_save_cmds, function()
             -- Restore empty side buffers after saving session
-            if GS.session_pre_save_nnp_disabled then
-              GS.session_pre_save_nnp_disabled = false
+            if C.sessions.pre_save_nnp_disabled then
+              C.sessions.pre_save_nnp_disabled = false
               local nnp = require 'no-neck-pain'
               nnp.enable()
             end
           end)
 
-          table.insert(post_restore_cmds, function()
-            -- Enable No Neck Pain after restoring session
-            local nnp = require 'no-neck-pain'
-            nnp.enable()
-          end)
+          -- table.insert(post_restore_cmds, function()
+          --   -- Enable No Neck Pain after restoring session
+          --   local nnp = require 'no-neck-pain'
+          --   nnp.enable()
+          -- end)
         end
 
         return {
@@ -493,14 +423,14 @@ M.setup = function()
         },
 
         -- Document existing key chains
-        spec = which_key_spec,
+        spec = KM.config.wk_legend,
       },
     },
 
     -- Main window padding
     {
       'shortcuts/no-neck-pain.nvim',
-      enabled = GS.plugin.no_neck_pain,
+      enabled = C.plugins.no_neck_pain,
       lazy = false,
       opts = {
         width = 130,
@@ -912,7 +842,7 @@ M.setup = function()
           overrides = {
             -- #0b1115 - dark
             -- #10161a - medium
-            Normal = { bg = colors_custom.background, fg = colors_evergarden.text },
+            Normal = { bg = C.colors.custom.bg, fg = C.colors.evergarden.text },
             -- Keyword = {
             --   -- fg = '#ce96de',
             --   -- bg = '#ae45be',
@@ -942,7 +872,7 @@ M.setup = function()
       'nvim-lualine/lualine.nvim',
       dependencies = { 'nvim-tree/nvim-web-devicons' },
       config = function()
-        local colors = colors_get()
+        local colors = C.colors.evergarden
         local theme = require 'lualine.themes.auto'
 
         -- Colors: normal
@@ -976,7 +906,7 @@ M.setup = function()
       event = 'VimEnter', -- if you want lazy load, see below
       dependencies = 'nvim-tree/nvim-web-devicons',
       config = function()
-        local colors = colors_get()
+        local colors = C.colors.evergarden
         local theme = {
           fill = { fg = colors.text, bg = colors.base },
           head = { fg = colors.text, bg = colors.surface1, style = 'bold' },
@@ -1494,7 +1424,7 @@ M.setup = function()
 
     {
       'kevinhwang91/nvim-ufo',
-      enabled = GS.plugin.ufo,
+      enabled = C.plugins.ufo,
       dependencies = {
         'kevinhwang91/promise-async',
         'nvim-treesitter/nvim-treesitter',
@@ -1992,7 +1922,6 @@ M.setup = function()
         local luasnip = require 'luasnip'
         local lspkind = require 'lspkind'
 
-        local a = require
         luasnip.config.setup {}
 
         cmp.setup {

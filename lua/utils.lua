@@ -24,4 +24,34 @@ M.merge_tables_kv = function(...)
   return result
 end
 
+--@param module string
+--@return table
+M.safe_require = function(module)
+  local ok, result = pcall(require, module)
+  if not ok then
+    return nil
+  end
+  return result
+end
+
+--@param plugin string
+--@return boolean
+M.plugin_enabled = function(plugin)
+  local plug = require('lazy.core.config').plugins[plugin]
+  if plug == nil then
+    return false
+  end
+  return true
+end
+
+--@param plugin string
+--@return boolean
+M.plugin_loaded = function(plugin)
+  local plug = require('lazy.core.config').plugins[plugin]
+  if plug == nil then
+    return false
+  end
+  return plug._.loaded
+end
+
 return M

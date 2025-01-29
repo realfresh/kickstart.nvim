@@ -1,7 +1,10 @@
 local utils = require 'utils'
+local config = require 'config'
+
 local M = {}
 
 M.setup = function()
+
   ----------------------------------------------------------------
   -- NOTE: Options
   ----------------------------------------------------------------
