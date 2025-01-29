@@ -1,6 +1,6 @@
 local C = require 'config'
-local KM = require '3_keymaps'
 local U = require 'utils'
+local KM = require 'setup_3_keymaps'
 
 -- S: Things To Install
 

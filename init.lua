@@ -6,9 +6,9 @@
 -- -> Lazyvim: Which key
 -- -> Lazyvim: Cmdline
 
-local options = require '1_options'
-local plugins = require '2_plugins'
-local keymaps = require '3_keymaps'
+local options = require 'setup_1_options'
+local plugins = require 'setup_2_plugins'
+local keymaps = require 'setup_3_keymaps'
 
 options.setup()
 keymaps.setup_base()
