@@ -278,11 +278,27 @@ local plugins_nvim_main = {
     end,
   },
 
-  -- Select & Fuzzy Finder
+  -- Fuzzy Finder: Snacks Picker
+  -- https://github.com/folke/snacks.nvim/blob/main/docs/picker.md
+  {
+    'folke/snacks.nvim',
+    keys = KM.plugin_snacks_picker,
+    ---@type snacks.Config
+    opts = {
+      picker = {
+        -- your picker configuration comes here
+        -- or leave it empty to use the default settings
+        -- refer to the configuration section below
+      },
+    },
+  },
+
+  -- Fuzzy Finder: Telescope (disabled)
   {
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
     branch = '0.1.x',
+    enabled = false,
     dependencies = {
       'nvim-lua/plenary.nvim',
       { -- If encountering errors, see telescope-fzf-native README for installation instructions
@@ -396,7 +412,9 @@ local plugins_nvim_qol = {
   {
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
+    keys = KM.plugin_whichkey,
     opts = {
+      preset = 'helix',
       -- delay between pressing a key and opening which-key (milliseconds)
       -- this setting is independent of vim.opt.timeoutlen
       delay = 0,
@@ -436,7 +454,6 @@ local plugins_nvim_qol = {
           F12 = '<F12>',
         },
       },
-
       -- Document existing key chains
       spec = KM.config.wk_legend,
     },
@@ -678,6 +695,7 @@ local plugins_ui_customization = {
     'nanozuki/tabby.nvim',
     event = 'VimEnter', -- if you want lazy load, see below
     dependencies = 'nvim-tree/nvim-web-devicons',
+    keys = KM.plugin_tabby,
     config = function()
       local colors = C.colors.evergarden
       local theme = {

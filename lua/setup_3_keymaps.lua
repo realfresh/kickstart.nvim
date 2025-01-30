@@ -113,6 +113,71 @@ M.plugin_autosession = {
   },
 }
 
+--stylua: ignore
+M.plugin_snacks_picker = {
+  { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
+  { "<leader>/", function() Snacks.picker.lines() end, desc = "Grep (Current Buffer)" },
+  -- { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
+  { "<leader><space>", function() Snacks.picker.files() end, desc = "Find Files" },
+  -- find
+  { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
+  { "<leader>fc", function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end, desc = "Find Config File" },
+  { "<leader>ff", function() Snacks.picker.files() end, desc = "Find Files" },
+  { "<leader>fg", function() Snacks.picker.git_files() end, desc = "Find Git Files" },
+  { "<leader>fr", function() Snacks.picker.recent() end, desc = "Recent" },
+  -- git
+  { "<leader>gc", function() Snacks.picker.git_log() end, desc = "Git Log" },
+  { "<leader>gs", function() Snacks.picker.git_status() end, desc = "Git Status" },
+  -- Grep
+  { "<leader>sb", function() Snacks.picker.lines() end, desc = "Buffer Lines" },
+  { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep Open Buffers" },
+  { "<leader>sg", function() Snacks.picker.grep() end, desc = "Grep" },
+  { "<leader>sw", function() Snacks.picker.grep_word() end, desc = "Visual selection or word", mode = { "n", "x" } },
+  -- search
+  { '<leader>s"', function() Snacks.picker.registers() end, desc = "Registers" },
+  { "<leader>sa", function() Snacks.picker.autocmds() end, desc = "Autocmds" },
+  { "<leader>sc", function() Snacks.picker.command_history() end, desc = "Command History" },
+  { "<leader>sC", function() Snacks.picker.commands() end, desc = "Commands" },
+  { "<leader>sd", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
+  { "<leader>sh", function() Snacks.picker.help() end, desc = "Help Pages" },
+  { "<leader>sH", function() Snacks.picker.highlights() end, desc = "Highlights" },
+  { "<leader>sj", function() Snacks.picker.jumps() end, desc = "Jumps" },
+  { "<leader>sk", function() Snacks.picker.keymaps() end, desc = "Keymaps" },
+  { "<leader>sl", function() Snacks.picker.loclist() end, desc = "Location List" },
+  { "<leader>sM", function() Snacks.picker.man() end, desc = "Man Pages" },
+  { "<leader>sm", function() Snacks.picker.marks() end, desc = "Marks" },
+  { "<leader>sR", function() Snacks.picker.resume() end, desc = "Resume" },
+  { "<leader>sq", function() Snacks.picker.qflist() end, desc = "Quickfix List" },
+  -- search: ui
+  { "<leader>uC", function() Snacks.picker.colorschemes() end, desc = "Colorschemes" },
+  -- search: projects
+  { "<leader>qp", function() Snacks.picker.projects() end, desc = "Projects" },
+  -- search: lsp
+  { "<leader>ss", function() Snacks.picker.lsp_symbols() end, desc = "LSP Symbols" },
+  -- LSP
+  { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Goto Definition" },
+  { "gr", function() Snacks.picker.lsp_references() end, nowait = true, desc = "References" },
+  { "gI", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
+  { "gy", function() Snacks.picker.lsp_type_definitions() end, desc = "Goto T[y]pe Definition" },
+}
+
+M.plugin_whichkey = {
+  {
+    '<leader>?',
+    function()
+      require('which-key').show { global = false }
+    end,
+    desc = 'Buffer Keymaps (which-key)',
+  },
+  {
+    '<c-w><space>',
+    function()
+      require('which-key').show { keys = '<c-w>', loop = true }
+    end,
+    desc = 'Window Hydra Mode (which-key)',
+  },
+}
+
 M.plugin_no_neck_pain = {
   { '<leader>ept', ':NoNeckPain<CR>', desc = 'Toggle Padding (No Neck Pain)' },
   { '<leader>epl', ':NoNeckPainToggleLeftSide<CR>', desc = 'Toggle Padding Left (No Neck Pain)' },
@@ -546,27 +611,27 @@ M.plugin_lsp_config_attach = function(event)
   -- Jump to the definition of the word under your cursor.
   --  This is where a variable was first declared, or where a function is defined, etc.
   --  To jump back, press <C-t>.
-  map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+  -- map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
 
   -- Find references for the word under your cursor.
-  map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+  -- map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
 
   -- Jump to the implementation of the word under your cursor.
   --  Useful when your language has ways of declaring types without an actual implementation.
-  map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
+  -- map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
 
   -- Jump to the type of the word under your cursor.
   --  Useful when you're not sure what type a variable is and you want to see
   --  the definition of its *type*, not where it was *defined*.
-  map('<leader>ld', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
+  -- map('<leader>ld', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
 
   -- Fuzzy find all the symbols in your current document.
   --  Symbols are things like variables, functions, types, etc.
-  map('<leader>lsd', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
+  -- map('<leader>lsd', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
 
   -- Fuzzy find all the symbols in your current workspace.
   --  Similar to document symbols, except searches over your entire project.
-  map('<leader>lsw', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+  -- map('<leader>lsw', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
 
   -- Rename the variable under your cursor.
   --  Most Language Servers support renaming across files, etc.
