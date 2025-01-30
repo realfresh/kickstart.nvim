@@ -1,7 +1,9 @@
 local C = require 'config'
 local U = require 'utils'
 
+---------------------------------
 -- S: Locals
+---------------------------------
 
 local set = vim.keymap.set
 
@@ -17,7 +19,9 @@ local mapbulk = function(keymaps)
   end
 end
 
+---------------------------------
 -- S: Module
+---------------------------------
 
 local M = {}
 
@@ -45,7 +49,9 @@ M.config = {
   },
 }
 
+---------------------------------
 -- S: Setup Function
+---------------------------------
 
 M.setup_base = function()
   -- Leaders
@@ -89,7 +95,9 @@ M.setup_plugins = function()
   --
 end
 
+---------------------------------
 -- S: Plugins
+---------------------------------
 
 M.plugin_autosession = {
   keys = {
@@ -304,6 +312,40 @@ M.plugin_snacks = {
   },
 }
 
+M.plugin_gitsigns = function(bufnr)
+  local gitsigns = require 'gitsigns'
+
+  local function map(mode, l, r, opts)
+    opts = opts or {}
+    opts.buffer = bufnr
+    vim.keymap.set(mode, l, r, opts)
+  end
+
+  -- Navigation
+  map('n', ']c', function()
+    if vim.wo.diff then
+      vim.cmd.normal { ']c', bang = true }
+    else
+      gitsigns.nav_hunk 'next'
+    end
+  end)
+
+  map('n', '[c', function()
+    if vim.wo.diff then
+      vim.cmd.normal { '[c', bang = true }
+    else
+      gitsigns.nav_hunk 'prev'
+    end
+  end)
+
+  -- Keybinds
+  map('n', '<leader>ghp', gitsigns.preview_hunk)
+end
+
+---------------------------------
+-- S: Plugins: Motions
+---------------------------------
+
 M.plugin_multicursor = function()
   local mc = require 'multicursor-nvim'
 
@@ -390,34 +432,40 @@ M.plugin_nvim_tree = {
   },
 }
 
-M.plugin_gitsigns = function(bufnr)
-  local gitsigns = require 'gitsigns'
+---------------------------------
+-- S: Plugins: Code & LSP
+---------------------------------
 
-  local function map(mode, l, r, opts)
-    opts = opts or {}
-    opts.buffer = bufnr
-    vim.keymap.set(mode, l, r, opts)
-  end
-
-  -- Navigation
-  map('n', ']c', function()
-    if vim.wo.diff then
-      vim.cmd.normal { ']c', bang = true }
-    else
-      gitsigns.nav_hunk 'next'
+M.plugin_hover = function()
+  -- Setup keymaps
+  vim.keymap.set('n', 'K', function(_)
+    local winid = require('ufo').peekFoldedLinesUnderCursor()
+    if not winid then
+      require('hover').hover(_)
     end
-  end)
+  end, { desc = 'hover.nvim' })
 
-  map('n', '[c', function()
-    if vim.wo.diff then
-      vim.cmd.normal { '[c', bang = true }
-    else
-      gitsigns.nav_hunk 'prev'
+  vim.keymap.set('n', 'gK', function(_)
+    local winid = require('ufo').peekFoldedLinesUnderCursor()
+    if not winid then
+      require('hover').hover_select(_)
     end
-  end)
+  end, { desc = 'hover.nvim' })
 
-  -- Keybinds
-  map('n', '<leader>ghp', gitsigns.preview_hunk)
+  -- vim.keymap.set('n', 'gK', require('hover').hover_select, { desc = 'hover.nvim (select)' })
+
+  vim.keymap.set('n', '<C-p>', function()
+    ---@diagnostic disable-next-line: missing-parameter
+    require('hover').hover_switch 'previous'
+  end, { desc = 'hover.nvim (previous source)' })
+
+  vim.keymap.set('n', '<C-n>', function()
+    ---@diagnostic disable-next-line: missing-parameter
+    require('hover').hover_switch 'next'
+  end, { desc = 'hover.nvim (next source)' })
+
+  -- Mouse support
+  vim.keymap.set('n', '<MouseMove>', require('hover').hover_mouse, { desc = 'hover.nvim (mouse)' })
 end
 
 M.plugin_conform = {
@@ -438,23 +486,6 @@ M.plugin_conform = {
     desc = '[F]ormat buffer',
   },
 }
-
-M.plugin_ufo = function()
-  local ufo = require 'ufo'
-
-  -- Using ufo provider need remap `zR` and `zM`
-  vim.keymap.set('n', 'zR', ufo.openAllFolds)
-  vim.keymap.set('n', 'zM', ufo.closeAllFolds)
-  vim.keymap.set('n', 'zm', ufo.closeFoldsWith) -- closeAllFolds == closeFoldsWith(0)
-
-  -- LSP Hover configured here to handle folded lines
-  vim.keymap.set('n', 'K', function()
-    local winid = ufo.peekFoldedLinesUnderCursor()
-    if not winid then
-      vim.lsp.buf.hover()
-    end
-  end)
-end
 
 M.plugin_trouble = {
   {
@@ -488,6 +519,23 @@ M.plugin_trouble = {
     desc = 'Quickfix List (Trouble)',
   },
 }
+
+M.plugin_ufo = function()
+  local ufo = require 'ufo'
+
+  -- Using ufo provider need remap `zR` and `zM`
+  vim.keymap.set('n', 'zR', ufo.openAllFolds)
+  vim.keymap.set('n', 'zM', ufo.closeAllFolds)
+  vim.keymap.set('n', 'zm', ufo.closeFoldsWith) -- closeAllFolds == closeFoldsWith(0)
+
+  -- LSP Hover configured here to handle folded lines
+  vim.keymap.set('n', 'K', function()
+    local winid = ufo.peekFoldedLinesUnderCursor()
+    if not winid then
+      vim.lsp.buf.hover()
+    end
+  end)
+end
 
 M.plugin_lsp_config_attach = function(event)
   local map = function(keys, func, desc, mode)
@@ -570,36 +618,6 @@ M.plugin_lsp_config_attach = function(event)
       vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
     end, '[T]oggle Inlay [H]ints')
   end
-end
-
-M.plugin_hover = function()
-  -- Setup keymaps
-  vim.keymap.set('n', 'K', function(_)
-    local winid = require('ufo').peekFoldedLinesUnderCursor()
-    if not winid then
-      require('hover').hover(_)
-    end
-  end, { desc = 'hover.nvim' })
-
-  vim.keymap.set('n', 'gK', function(_)
-    local winid = require('ufo').peekFoldedLinesUnderCursor()
-    if not winid then
-      require('hover').hover_select(_)
-    end
-  end, { desc = 'hover.nvim' })
-
-  -- vim.keymap.set('n', 'gK', require('hover').hover_select, { desc = 'hover.nvim (select)' })
-
-  vim.keymap.set('n', '<C-p>', function()
-    require('hover').hover_switch 'previous'
-  end, { desc = 'hover.nvim (previous source)' })
-
-  vim.keymap.set('n', '<C-n>', function()
-    require('hover').hover_switch 'next'
-  end, { desc = 'hover.nvim (next source)' })
-
-  -- Mouse support
-  vim.keymap.set('n', '<MouseMove>', require('hover').hover_mouse, { desc = 'hover.nvim (mouse)' })
 end
 
 M.plugin_copilot = {
