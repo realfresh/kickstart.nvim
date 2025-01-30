@@ -726,54 +726,6 @@ local plugins_ui_customization = {
   },
 }
 
----@type LazySpec[]
-local plugins_bundles = {
-  -- Mini
-  {
-    'echasnovski/mini.nvim',
-    config = function()
-      -- Autoclose pairs
-      require('mini.pairs').setup {
-        -- In which modes mappings from this `config` should be created
-        modes = { insert = true, command = false, terminal = false },
-        -- Global mappings. Each right hand side should be a pair information, a
-        -- table with at least these fields (see more in |MiniPairs.map|):
-        -- - <action> - one of 'open', 'close', 'closeopen'.
-        -- - <pair> - two character string for pair to be used.
-        -- By default pair is not inserted after `\`, quotes are not recognized by
-        -- `<CR>`, `'` does not insert pair after a letter.
-        -- Only parts of tables can be tweaked (others will use these defaults).
-        mappings = {
-          ['('] = { action = 'open', pair = '()', neigh_pattern = '[^\\].' },
-          ['['] = { action = 'open', pair = '[]', neigh_pattern = '[^\\].' },
-          ['{'] = { action = 'open', pair = '{}', neigh_pattern = '[^\\].' },
-
-          [')'] = { action = 'close', pair = '()', neigh_pattern = '[^\\].' },
-          [']'] = { action = 'close', pair = '[]', neigh_pattern = '[^\\].' },
-          ['}'] = { action = 'close', pair = '{}', neigh_pattern = '[^\\].' },
-
-          ['"'] = { action = 'closeopen', pair = '""', neigh_pattern = '[^\\].', register = { cr = false } },
-          ["'"] = { action = 'closeopen', pair = "''", neigh_pattern = '[^%a\\].', register = { cr = false } },
-          ['`'] = { action = 'closeopen', pair = '``', neigh_pattern = '[^\\].', register = { cr = false } },
-        },
-      }
-
-      -- Better Around/Inside textobjects
-      -- Examples:
-      --  - va)  - [V]isually select [A]round [)]paren
-      --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
-      --  - ci'  - [C]hange [I]nside [']quote
-      require('mini.ai').setup { n_lines = 500 }
-
-      -- Add/delete/replace surroundings (brackets, quotes, etc.)
-      -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
-      -- - sd'   - [S]urround [D]elete [']quotes
-      -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup()
-    end,
-  },
-}
-
 ---------------------------------
 -- S: Plugins: Editor (when code is being written))
 ---------------------------------
@@ -815,16 +767,6 @@ local plugins_editor_indicators = {
 
 ---@type LazySpec[]
 local plugins_editor_navigation = {
-  -- Navigation
-  {
-    'ggandor/leap.nvim',
-    lazy = false,
-    dependencies = { 'tpope/vim-repeat' },
-    config = function()
-      KM.plugin_leap()
-    end,
-  },
-
   -- Jumplists & Bookmarks
   {
     'otavioschwanck/arrow.nvim',
@@ -949,6 +891,93 @@ local plugins_coding = {
 
       KM.plugin_multicursor()
     end,
+  },
+
+  -- Navigation
+  {
+    'ggandor/leap.nvim',
+    lazy = false,
+    dependencies = { 'tpope/vim-repeat' },
+    config = function()
+      KM.plugin_leap()
+    end,
+  },
+
+  -- Around & Inside
+  {
+    'echasnovski/mini.ai',
+    opts = function()
+      --  - va)  - [V]isually select [A]round [)]paren
+      --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
+      --  - ci'  - [C]hange [I]nside [']quote
+      local ai = require 'mini.ai'
+      return {
+        n_lines = 500,
+        custom_textobjects = {
+          o = ai.gen_spec.treesitter { -- code block
+            a = { '@block.outer', '@conditional.outer', '@loop.outer' },
+            i = { '@block.inner', '@conditional.inner', '@loop.inner' },
+          },
+          f = ai.gen_spec.treesitter { a = '@function.outer', i = '@function.inner' }, -- function
+          c = ai.gen_spec.treesitter { a = '@class.outer', i = '@class.inner' }, -- class
+          t = { '<([%p%w]-)%f[^<%w][^<>]->.-</%1>', '^<.->().*()</[^/]->$' }, -- tags
+          d = { '%f[%d]%d+' }, -- digits
+          e = { -- Word with case
+            { '%u[%l%d]+%f[^%l%d]', '%f[%S][%l%d]+%f[^%l%d]', '%f[%P][%l%d]+%f[^%l%d]', '^[%l%d]+%f[^%l%d]' },
+            '^().*()$',
+          },
+          u = ai.gen_spec.function_call(), -- u for "Usage"
+          U = ai.gen_spec.function_call { name_pattern = '[%w_]' }, -- without dot in function name
+          -- g = LazyVim.mini.ai_buffer, -- buffer
+        },
+      }
+    end,
+  },
+
+  -- Auto-Close Pairs
+  {
+    'echasnovski/mini.pairs',
+    opts = {},
+  },
+
+  -- Modify Sorroundings
+  -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
+  -- - sd'   - [S]urround [D]elete [']quotes
+  -- - sr)'  - [S]urround [R]eplace [)] [']
+  {
+    'echasnovski/mini.surround',
+    opts = {
+      modes = { insert = true, command = true, terminal = false },
+      -- skip autopair when next character is one of these
+      skip_next = [=[[%w%%%'%[%"%.%`%$]]=],
+      -- skip autopair when the cursor is inside these treesitter nodes
+      skip_ts = { 'string' },
+      -- skip autopair when next character is closing pair
+      -- and there are more closing pairs than opening pairs
+      skip_unbalanced = true,
+      -- better deal with markdown code blocks
+      markdown = true,
+      -- Global mappings. Each right hand side should be a pair information, a
+      -- table with at least these fields (see more in |MiniPairs.map|):
+      -- - <action> - one of 'open', 'close', 'closeopen'.
+      -- - <pair> - two character string for pair to be used.
+      -- By default pair is not inserted after `\`, quotes are not recognized by
+      -- `<CR>`, `'` does not insert pair after a letter.
+      -- Only parts of tables can be tweaked (others will use these defaults).
+      mappings = {
+        ['('] = { action = 'open', pair = '()', neigh_pattern = '[^\\].' },
+        ['['] = { action = 'open', pair = '[]', neigh_pattern = '[^\\].' },
+        ['{'] = { action = 'open', pair = '{}', neigh_pattern = '[^\\].' },
+
+        [')'] = { action = 'close', pair = '()', neigh_pattern = '[^\\].' },
+        [']'] = { action = 'close', pair = '[]', neigh_pattern = '[^\\].' },
+        ['}'] = { action = 'close', pair = '{}', neigh_pattern = '[^\\].' },
+
+        ['"'] = { action = 'closeopen', pair = '""', neigh_pattern = '[^\\].', register = { cr = false } },
+        ["'"] = { action = 'closeopen', pair = "''", neigh_pattern = '[^%a\\].', register = { cr = false } },
+        ['`'] = { action = 'closeopen', pair = '``', neigh_pattern = '[^\\].', register = { cr = false } },
+      },
+    },
   },
 }
 
@@ -1392,7 +1421,6 @@ M.setup = function()
     plugins_nvim_snacks,
     plugins_ui_themes,
     plugins_ui_customization,
-    plugins_bundles,
     plugins_editor_indicators,
     plugins_editor_navigation,
     plugins_coding,
