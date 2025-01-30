@@ -207,16 +207,16 @@ M.plugin_nvzone_menu = {
 }
 
 M.plugin_tabby = {
-  { 'n', '<leader>tn', ':$tabnew<CR>', desc = 'Tab: New' },
-  { 'n', '<leader>tc', ':tabclose<CR>', desc = 'Tab: Close' },
-  { 'n', '<leader>to', ':tabonly<CR>', desc = 'Tab: Only' },
-  { 'n', '<leader>tf', ':tabn<CR>', desc = 'Tab: Go Forward' },
-  { 'n', '<leader>tb', ':tabp<CR>', desc = 'Tab: Go Backward' },
-  { 'n', '<leader>t-', ':-tabmove<CR>', desc = 'Tab: Move Backward' },
-  { 'n', '<leader>t=', ':+tabmove<CR>', desc = 'Tab: Move Forward' },
+  { mode = 'n', '<leader><tab>n', ':$tabnew<CR>', desc = 'Tab: New' },
+  { mode = 'n', '<leader><tab>q', ':tabclose<CR>', desc = 'Tab: Close' },
+  { mode = 'n', '<leader><tab>o', ':tabonly<CR>', desc = 'Tab: Only' },
+  { mode = 'n', '<leader><tab><tab>', ':tabn<CR>', desc = 'Tab: Go Forward' },
+  { mode = 'n', '<leader><tab>b', ':tabp<CR>', desc = 'Tab: Go Backward' },
+  { mode = 'n', '<leader><tab>-', ':-tabmove<CR>', desc = 'Tab: Move Backward' },
+  { mode = 'n', '<leader><tab>+', ':+tabmove<CR>', desc = 'Tab: Move Forward' },
   {
-    'n',
-    '<leader>tr',
+    mode = 'n',
+    '<leader><tab>r',
     desc = 'Tab: Rename',
     function()
       Snacks.input({ prompt = 'Tab Name:' }, function(v)
