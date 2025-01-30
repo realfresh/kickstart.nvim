@@ -2,16 +2,21 @@ local C = require 'config'
 local U = require 'utils'
 local KM = require 'setup_3_keymaps'
 
--- S: Things To Install
-
+-- S: Notes
+--
 -- Find LSP servers at:
--- https://github.com/williamboman/mason-lspconfig.nvim?tab=readme-ov-file#available-lsp-servers
+--  -> https://github.com/williamboman/mason-lspconfig.nvim?tab=readme-ov-file#available-lsp-servers
 --
 -- Find list of tools available via Mason Tool Installer:
--- `:Mason`
+--  -> `:Mason`
+--
 
--- Tools to install via Mason (with their LSP config)
-local mason_tools_lsp = {
+-- S: Module
+
+local M = {}
+
+M.lsp = {
+
   -- clangd = {},
   -- gopls = {},
   -- pyright = {},
@@ -96,8 +101,20 @@ local mason_tools_lsp = {
   },
 }
 
--- Extra tools to install via Mason (no config required)
-local mason_tools_extra = {
+M.lsp_names = vim.tbl_keys(M.lsp)
+
+M.lsp_disable_format_on_save = {
+  -- Disable "format_on_save lsp_fallback" for languages that don't
+  -- have a well standardized coding style. You can add additional
+  -- languages here or re-enable it for the disabled ones.
+  c = true,
+  cpp = true,
+  javascript = true,
+  typescript = true,
+  json = true,
+}
+
+M.mason_tools_list = vim.list_extend(M.lsp_names, {
   'ansible-lint',
   'cspell',
   'eslint_d',
@@ -106,27 +123,9 @@ local mason_tools_extra = {
   'shellcheck',
   'shfmt',
   'stylua',
-}
+})
 
-local mason_tools_lsp_keys = vim.tbl_keys(mason_tools_lsp or {})
-local mason_tools_keys = vim.list_extend(mason_tools_lsp_keys, mason_tools_extra)
-
--- S: LSP
-
--- Disable "format_on_save lsp_fallback" for languages that don't
--- have a well standardized coding style. You can add additional
--- languages here or re-enable it for the disabled ones.
-local lsp_format_on_save_disable = {
-  c = true,
-  cpp = true,
-  javascript = true,
-  typescript = true,
-  json = true,
-}
-
--- S: Formatting
-
-local formatters_by_ft = {
+M.formatters = {
   -- Conform will run multiple formatters sequentially
   -- You can also customize some of the format options for the filetype
   -- You can use 'stop_after_first' to run the first available formatter from the list
@@ -154,13 +153,7 @@ local formatters_by_ft = {
   graphql = { 'prettierd', 'prettier', stop_after_first = true },
 }
 
-local M = {}
-
 M.setup = function()
-  ----------------------------------------------------------------
-  --  NOTE:  Plugin List
-  ----------------------------------------------------------------
-
   local plugins_overrides = {
     -- Input & Select
     {
@@ -175,12 +168,7 @@ M.setup = function()
       'rmagatti/auto-session',
       lazy = false,
       dependencies = {},
-      keys = {
-        -- Will use Telescope if installed or a vim.ui.select picker otherwise
-        { '<leader>pr', '<cmd>SessionSearch<CR>', desc = 'Session search' },
-        { '<leader>ps', '<cmd>SessionSave<CR>', desc = 'Save session' },
-        { '<leader>pa', '<cmd>SessionToggleAutoSave<CR>', desc = 'Toggle autosave' },
-      },
+      keys = KM.plugin_autosession.keys,
       ---enables autocomplete for opts
       ---@module "auto-session"
       ---@type function|AutoSession.Config
@@ -246,14 +234,7 @@ M.setup = function()
               -- },
             },
             previewer = false, -- File preview for session picker
-
-            mappings = {
-              -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
-              delete_session = { 'i', '<C-D>' },
-              alternate_session = { 'i', '<C-S>' },
-              copy_session = { 'i', '<C-Y>' },
-            },
-
+            mappings = KM.plugin_autosession.mappings,
             session_control = {
               control_dir = vim.fn.stdpath 'data' .. '/auto_session/', -- Auto session control dir, for control files, like alternating between two sessions with session-lens
               control_filename = 'session_control.json', -- File name of the session control file
@@ -432,6 +413,7 @@ M.setup = function()
       'shortcuts/no-neck-pain.nvim',
       enabled = C.plugins.no_neck_pain,
       lazy = false,
+      keys = KM.plugin_no_neck_pain,
       opts = {
         width = 130,
         autocmds = {
@@ -452,13 +434,6 @@ M.setup = function()
             position = 'left',
           },
         },
-      },
-      keys = {
-        { '<leader>ept', ':NoNeckPain<CR>', desc = 'Toggle Padding (No Neck Pain)' },
-        { '<leader>epl', ':NoNeckPainToggleLeftSide<CR>', desc = 'Toggle Padding Left (No Neck Pain)' },
-        { '<leader>epr', ':NoNeckPainToggleRightSide<CR>', desc = 'Toggle Padding Right (No Neck Pain)' },
-        { '<leader>ep-', ':NoNeckPainWidthDown<CR>', desc = 'Less Padding (No Neck Pain)' },
-        { '<leader>ep=', ':NoNeckPainWidthUp<CR>', desc = 'More Padding (No Neck Pain)' },
       },
     },
   }
@@ -514,6 +489,7 @@ M.setup = function()
       'folke/snacks.nvim',
       priority = 1000,
       lazy = false,
+      keys = KM.plugin_snacks.keys,
       ---@type snacks.Config
       opts = {
         input = { enabled = false },
@@ -526,7 +502,6 @@ M.setup = function()
         debug = { enabled = true },
         lazygit = { enabled = true },
         ---@class snacks.scroll.Config
-        ---@field animate snacks.animate.Config
         -- scroll = {
         --   spamming = 10, -- threshold for spamming detection
         --   animate = { duration = { step = 10, total = 250 }, easing = 'outSine' },
@@ -545,156 +520,6 @@ M.setup = function()
           },
         },
       },
-      keys = {
-        --[[
-      {
-        '<leader>.',
-        desc = 'Toggle Scratch Buffer',
-        function()
-          Snacks.scratch()
-        end,
-      },
-      {
-        '<leader>S',
-        desc = 'Select Scratch Buffer',
-        function()
-          Snacks.scratch.select()
-        end,
-      },
-      --]]
-        -- Notifications
-        {
-          '<leader>nh',
-          desc = 'Notification History',
-          function()
-            Snacks.notifier.show_history()
-          end,
-        },
-        {
-          '<leader>nd',
-          desc = 'Dismiss All Notifications',
-          function()
-            Snacks.notifier.hide()
-          end,
-        },
-        {
-          '<leader>nN',
-          desc = 'Neovim News',
-          function()
-            Snacks.win {
-              file = vim.api.nvim_get_runtime_file('doc/news.txt', false)[1],
-              width = 0.6,
-              height = 0.6,
-              wo = {
-                spell = false,
-                wrap = false,
-                signcolumn = 'yes',
-                statuscolumn = ' ',
-                conceallevel = 3,
-              },
-            }
-          end,
-        },
-        -- Buffer
-        {
-          '<leader>bdc',
-          desc = 'Delete Current Buffer',
-          function()
-            Snacks.bufdelete()
-          end,
-        },
-        {
-          '<leader>bda',
-          desc = 'Delete All Buffers',
-          function()
-            Snacks.bufdelete.all()
-          end,
-        },
-        {
-          '<leader>bdo',
-          desc = 'Delete Other Buffers',
-          function()
-            Snacks.bufdelete.other()
-          end,
-        },
-        -- Rename
-        {
-          '<leader>rf',
-          desc = 'Rename File',
-          function()
-            Snacks.rename.rename_file()
-          end,
-        },
-        -- Git
-        {
-          '<leader>gb',
-          desc = 'Git Browse',
-          mode = { 'n', 'v' },
-          function()
-            Snacks.gitbrowse()
-          end,
-        },
-        {
-          '<leader>gB',
-          desc = 'Git Blame',
-          function()
-            Snacks.git.blame_line()
-          end,
-        },
-        {
-          '<leader>gf',
-          desc = 'Lazygit Current File History',
-          function()
-            Snacks.lazygit.log_file()
-          end,
-        },
-        {
-          '<leader>gg',
-          desc = 'Lazygit',
-          function()
-            Snacks.lazygit()
-          end,
-        },
-        {
-          '<leader>gl',
-          desc = 'Lazygit Log (cwd)',
-          function()
-            Snacks.lazygit.log()
-          end,
-        },
-        -- Other
-        {
-          '<leader>ot',
-          desc = 'Toggle Terminal',
-          function()
-            Snacks.terminal()
-          end,
-        },
-        {
-          '<leader>oi',
-          desc = 'Which Key Ignore',
-          function()
-            Snacks.terminal()
-          end,
-        },
-        -- Words
-        {
-          ']]',
-          function()
-            Snacks.words.jump(vim.v.count1)
-          end,
-          desc = 'Next Reference',
-          mode = { 'n', 't' },
-        },
-        {
-          '[[',
-          function()
-            Snacks.words.jump(-vim.v.count1)
-          end,
-          desc = 'Prev Reference',
-          mode = { 'n', 't' },
-        },
-      },
       init = function()
         vim.api.nvim_create_autocmd('User', {
           pattern = 'VeryLazy',
@@ -709,18 +534,7 @@ M.setup = function()
             end
             vim.print = _G.dd -- Override print to use snacks for `:=` command
 
-            -- Create some toggle mappings
-            Snacks.toggle.option('spell', { name = 'Spelling' }):map '<leader>us'
-            Snacks.toggle.option('wrap', { name = 'Wrap' }):map '<leader>uw'
-            Snacks.toggle.option('relativenumber', { name = 'Relative Number' }):map '<leader>uL'
-            Snacks.toggle.diagnostics():map '<leader>ud'
-            Snacks.toggle.line_number():map '<leader>ul'
-            Snacks.toggle.option('conceallevel', { off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2 }):map '<leader>uc'
-            Snacks.toggle.treesitter():map '<leader>uT'
-            Snacks.toggle.option('background', { off = 'light', on = 'dark', name = 'Dark Background' }):map '<leader>ub'
-            Snacks.toggle.inlay_hints():map '<leader>uh'
-            Snacks.toggle.indent():map '<leader>ug'
-            Snacks.toggle.dim():map '<leader>uD'
+            KM.plugin_snacks.setup()
           end,
         })
       end,
@@ -728,6 +542,9 @@ M.setup = function()
   }
 
   local plugins_themes = {
+    { 'ramojus/mellifluous.nvim' },
+    { 'rose-pine/neovim', name = 'rose-pine' },
+    { 'vague2k/vague.nvim' },
     {
       'rebelot/kanagawa.nvim',
       enabled = false,
@@ -804,24 +621,6 @@ M.setup = function()
       end,
     },
     {
-      'catppuccin/nvim',
-      name = 'catppuccin',
-      priority = 1000,
-      enabled = false,
-      opts = {},
-    },
-    {
-      'folke/tokyonight.nvim',
-      enabled = true,
-      priority = 1000, -- Make sure to load this before all the other start plugins.
-      init = function()
-        -- 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-        -- vim.cmd.colorscheme 'tokyonight-night'
-        -- You can configure highlights by doing something like:
-        -- vim.cmd.hi 'Comment gui=none'
-      end,
-    },
-    {
       'comfysage/evergarden',
       enabled = true,
       priority = 1000,
@@ -859,14 +658,13 @@ M.setup = function()
         -- ]]
       end,
     },
-
-    { 'marko-cerovac/material.nvim' },
-    { 'ramojus/mellifluous.nvim' },
-    { 'rose-pine/neovim', name = 'rose-pine' },
-    { 'vague2k/vague.nvim' },
   }
 
   local plugins_bars = {
+    -- Menu
+    { 'nvzone/volt', lazy = true },
+    { 'nvzone/menu', lazy = true, keys = KM.plugin_nvzone_menu },
+
     -- Statusline
     {
       'nvim-lualine/lualine.nvim',
@@ -950,54 +748,6 @@ M.setup = function()
         }
         require 'tabby'
       end,
-      keys = {
-        { '<leader>tn', mode = 'n', desc = 'Tab: New', ':$tabnew<CR>' },
-        { '<leader>tc', mode = 'n', desc = 'Tab: Close', ':tabclose<CR>' },
-        { '<leader>to', mode = 'n', desc = 'Tab: Only', ':tabonly<CR>' },
-        { '<leader>tf', mode = 'n', desc = 'Tab: Go Forward', ':tabn<CR>' },
-        { '<leader>tb', mode = 'n', desc = 'Tab: Go Backward', ':tabp<CR>' },
-        { '<leader>t-', mode = 'n', desc = 'Tab: Move Backward', ':-tabmove<CR>' },
-        { '<leader>t=', mode = 'n', desc = 'Tab: Move Forward', ':+tabmove<CR>' },
-        {
-          '<leader>tr',
-          mode = 'n',
-          desc = 'Tab: Rename',
-          function()
-            Snacks.input({ prompt = 'Tab Name:' }, function(v)
-              require('tabby').tab_rename(v)
-            end)
-          end,
-        },
-      },
-    },
-
-    -- Menu
-    {
-      'nvzone/volt',
-      lazy = true,
-    },
-    {
-      'nvzone/menu',
-      lazy = true,
-      config = function() end,
-      keys = {
-        {
-          '<C-RightMouse>',
-          mode = { 'n', 'v' },
-          function()
-            require('menu.utils').delete_old_menus()
-
-            vim.cmd.exec '"normal! \\<RightMouse>"'
-
-            -- clicked buf
-            local buf = vim.api.nvim_win_get_buf(vim.fn.getmousepos().winid)
-            local options = vim.bo[buf].ft == 'NvimTree' and 'nvimtree' or 'default'
-            print(vim.bo[buf].ft)
-
-            require('menu').open(options, { mouse = true })
-          end,
-        },
-      },
     },
   }
 
@@ -1063,107 +813,6 @@ M.setup = function()
       'jake-stewart/multicursor.nvim',
       branch = '1.0',
       config = function()
-        local set = vim.keymap.set
-        local mc = require 'multicursor-nvim'
-
-        mc.setup()
-
-        -- Add or skip cursor above/below the main cursor.
-        -- set({ 'n', 'v' }, '<up>', function()
-        --   mc.lineAddCursor(-1)
-        -- end)
-        -- set({ 'n', 'v' }, '<down>', function()
-        --   mc.lineAddCursor(1)
-        -- end)
-        -- set({ 'n', 'v' }, '<leader><up>', function()
-        --   mc.lineSkipCursor(-1)
-        -- end)
-        -- set({ 'n', 'v' }, '<leader><down>', function()
-        --   mc.lineSkipCursor(1)
-        -- end)
-
-        -- Add or skip adding a new cursor by matching word/selection
-        -- set({ 'n', 'v' }, '<leader>n', function()
-        --   mc.matchAddCursor(1)
-        -- end)
-        -- set({ 'n', 'v' }, '<leader>s', function()
-        --   mc.matchSkipCursor(1)
-        -- end)
-        -- set({ 'n', 'v' }, '<leader>N', function()
-        --   mc.matchAddCursor(-1)
-        -- end)
-        -- set({ 'n', 'v' }, '<leader>S', function()
-        --   mc.matchSkipCursor(-1)
-        -- end)
-
-        -- Add all matches in the document
-        set({ 'n', 'v' }, '<leader>cca', mc.matchAllAddCursors, { desc = 'Cursor: Add all matches' })
-
-        -- You can also add cursors with any motion you prefer:
-        -- set("n", "<right>", function()
-        --     mc.addCursor("w")
-        -- end)
-        -- set("n", "<leader><right>", function()
-        --     mc.skipCursor("w")
-        -- end)
-
-        -- Rotate the main cursor.
-
-        set({ 'n', 'v' }, '<leader>cc<left>', mc.nextCursor, { desc = 'Cursor: Rotate left' })
-        set({ 'n', 'v' }, '<leader>cc<right>', mc.prevCursor, { desc = 'Cursor: Rotate right' })
-
-        -- Delete the main cursor.
-        set({ 'n', 'v' }, '<leader>ccx', mc.deleteCursor, { desc = 'Cursor: Delete' })
-
-        -- Add and remove cursors with control + left click.
-        set('n', '<c-leftmouse>', mc.handleMouse, { desc = 'Cursor: Set With Mouse' })
-
-        -- Easy way to add and remove cursors using the main cursor.
-        set({ 'n', 'v' }, '<c-q>', mc.toggleCursor, { desc = 'Cursor: Toggle' })
-
-        -- Clone every cursor and disable the originals.
-        set({ 'n', 'v' }, '<leader>ccd', mc.duplicateCursors, { desc = 'Cursor: Duplicate' })
-
-        -- Enable curosrs or clear all cursors
-        set('n', '<esc>', function()
-          if not mc.cursorsEnabled() then
-            mc.enableCursors()
-          elseif mc.hasCursors() then
-            mc.clearCursors()
-          else
-            return '<esc>'
-          end
-        end, { remap = true })
-
-        -- bring back cursors if you accidentally clear them
-        set('n', '<leader>ccv', mc.restoreCursors)
-
-        -- Align cursor columns.
-        set('n', '<leader>cca', mc.alignCursors)
-
-        -- Split visual selections by regex.
-        set('v', '<leader>ccs', mc.splitCursors)
-
-        -- Append/insert for each line of visual selections.
-        set('v', 'I', mc.insertVisual)
-        set('v', 'A', mc.appendVisual)
-
-        -- match new cursors within visual selections by regex.
-        set('v', 'M', mc.matchCursors)
-
-        -- Rotate visual selection contents.
-        set('v', '<leader>cct', function()
-          mc.transposeCursors(1)
-        end, { desc = 'Cursor: Transpose (1)' })
-        set('v', '<leader>ccT', function()
-          mc.transposeCursors(-1)
-        end, { desc = 'Cursor: Transpose (-1)' })
-
-        -- Jumplist support
-        set({ 'v', 'n' }, '<c-i>', mc.jumpForward)
-        set({ 'v', 'n' }, '<c-o>', mc.jumpBackward)
-
-        -- Customize how cursors look.
         local hl = vim.api.nvim_set_hl
         hl(0, 'MultiCursorCursor', { link = 'Cursor' })
         hl(0, 'MultiCursorVisual', { link = 'Visual' })
@@ -1171,6 +820,8 @@ M.setup = function()
         hl(0, 'MultiCursorDisabledCursor', { link = 'Visual' })
         hl(0, 'MultiCursorDisabledVisual', { link = 'Visual' })
         hl(0, 'MultiCursorDisabledSign', { link = 'SignColumn' })
+
+        KM.plugin_multicursor()
       end,
     },
 
@@ -1180,10 +831,7 @@ M.setup = function()
       lazy = false,
       dependencies = { 'tpope/vim-repeat' },
       config = function()
-        -- require('leap').create_default_mappings()
-        vim.keymap.set({ 'n', 'x', 'o' }, 'gl', '<Plug>(leap-forward)', { desc = 'Leap: Forward' })
-        vim.keymap.set({ 'n', 'x', 'o' }, 'gL', '<Plug>(leap-backward)', { desc = 'Leap: Backward' })
-        vim.keymap.set({ 'n', 'x', 'o' }, 'gW', '<Plug>(leap-from-window)', { desc = 'Leap: From Window' })
+        KM.plugin_leap()
       end,
     },
   }
@@ -1199,8 +847,8 @@ M.setup = function()
       },
       opts = {
         show_icons = true,
-        leader_key = ';', -- Recommended to be a single key
-        buffer_leader_key = 'm', -- Per Buffer Mappings
+        leader_key = KM.plugin_arrow.leader,
+        buffer_leader_key = KM.plugin_arrow.leader_buffer,
       },
     },
 
@@ -1229,17 +877,7 @@ M.setup = function()
       dependencies = {
         'nvim-tree/nvim-web-devicons',
       },
-      keys = {
-        {
-          '<leader>1',
-          desc = 'NvimTree',
-          -- ':NvimTreeOpen<CR>'
-          function()
-            local nvimtree = require 'nvim-tree.api'
-            nvimtree.tree.toggle()
-          end,
-        },
-      },
+      keys = KM.plugin_nvim_tree,
       config = function()
         require('nvim-tree').setup {}
       end,
@@ -1269,66 +907,12 @@ M.setup = function()
         },
         signs_staged_enable = true,
         on_attach = function(bufnr)
-          local gitsigns = require 'gitsigns'
-
-          local function map(mode, l, r, opts)
-            opts = opts or {}
-            opts.buffer = bufnr
-            vim.keymap.set(mode, l, r, opts)
-          end
-
-          -- Navigation
-          map('n', ']c', function()
-            if vim.wo.diff then
-              vim.cmd.normal { ']c', bang = true }
-            else
-              gitsigns.nav_hunk 'next'
-            end
-          end)
-
-          map('n', '[c', function()
-            if vim.wo.diff then
-              vim.cmd.normal { '[c', bang = true }
-            else
-              gitsigns.nav_hunk 'prev'
-            end
-          end)
-
-          -- Keybinds
-          map('n', '<leader>ghp', gitsigns.preview_hunk)
-
+          KM.plugin_gitsigns(bufnr)
           vim.cmd [[
-          highlight GitSignsAdd    guifg=green        guibg=NONE
-          highlight GitSignsChange guifg=darkyellow   guibg=NONE
-          highlight GitSignsDelete guifg=red          guibg=NONE
-        ]]
-
-          --[[
-        -- Actions
-        map('n', '<leader>hs', gitsigns.stage_hunk)
-        map('n', '<leader>hr', gitsigns.reset_hunk)
-        map('v', '<leader>hs', function()
-          gitsigns.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
-        end)
-        map('v', '<leader>hr', function()
-          gitsigns.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
-        end)
-        map('n', '<leader>hS', gitsigns.stage_buffer)
-        map('n', '<leader>hu', gitsigns.undo_stage_hunk)
-        map('n', '<leader>hR', gitsigns.reset_buffer)
-        map('n', '<leader>hb', function()
-          gitsigns.blame_line { full = true }
-        end)
-        map('n', '<leader>tb', gitsigns.toggle_current_line_blame)
-        map('n', '<leader>hd', gitsigns.diffthis)
-        map('n', '<leader>hD', function()
-          gitsigns.diffthis '~'
-        end)
-        map('n', '<leader>td', gitsigns.toggle_deleted)
-
-        -- Text object
-        map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
-        --]]
+            highlight GitSignsAdd    guifg=green        guibg=NONE
+            highlight GitSignsChange guifg=darkyellow   guibg=NONE
+            highlight GitSignsDelete guifg=red          guibg=NONE
+          ]]
         end,
       },
     },
@@ -1342,30 +926,13 @@ M.setup = function()
       'stevearc/conform.nvim',
       event = { 'BufWritePre' },
       cmd = { 'ConformInfo' },
-      keys = {
-        {
-          '<leader>f',
-          function()
-            require('conform').format { async = true, lsp_format = 'fallback' }
-          end,
-          mode = '',
-          desc = '[F]ormat buffer',
-        },
-        {
-          '<leader>cf',
-          function()
-            require('conform').format { async = true, lsp_format = 'fallback' }
-          end,
-          mode = '',
-          desc = '[F]ormat buffer',
-        },
-      },
+      keys = KM.plugin_conform,
       opts = {
-        formatters_by_ft = formatters_by_ft,
+        formatters_by_ft = M.formatters,
         notify_on_error = false,
         format_on_save = function(bufnr)
           local lsp_format_opt
-          if lsp_format_on_save_disable[vim.bo[bufnr].filetype] then
+          if M.lsp_disable_format_on_save[vim.bo[bufnr].filetype] then
             lsp_format_opt = 'never'
           else
             lsp_format_opt = 'fallback'
@@ -1433,21 +1000,6 @@ M.setup = function()
       config = function()
         local ufo = require 'ufo'
         local ufo_default_providers = { 'treesitter', 'indent' }
-
-        -- Using ufo provider need remap `zR` and `zM`
-        vim.keymap.set('n', 'zR', ufo.openAllFolds)
-        vim.keymap.set('n', 'zM', ufo.closeAllFolds)
-        vim.keymap.set('n', 'zm', ufo.closeFoldsWith) -- closeAllFolds == closeFoldsWith(0)
-
-        -- LSP Hover configured here to handle folded lines
-        vim.keymap.set('n', 'K', function()
-          local winid = ufo.peekFoldedLinesUnderCursor()
-          if not winid then
-            vim.lsp.buf.hover()
-          end
-        end)
-
-        -- Configure UFO
         ufo.setup {
           open_fold_hl_timeout = 400,
           close_fold_kinds_for_ft = {},
@@ -1465,6 +1017,7 @@ M.setup = function()
             return ufo_default_providers
           end,
         }
+        KM.plugin_ufo()
       end,
     },
 
@@ -1510,93 +1063,7 @@ M.setup = function()
         --    function will be executed to configure the current buffer
         vim.api.nvim_create_autocmd('LspAttach', {
           group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
-          callback = function(event)
-            -- NOTE: Remember that Lua is a real programming language, and as such it is possible
-            -- to define small helper and utility functions so you don't have to repeat yourself.
-            --
-            -- In this case, we create a function that lets us more easily define mappings specific
-            -- for LSP related items. It sets the mode, buffer and description for us each time.
-            local map = function(keys, func, desc, mode)
-              mode = mode or 'n'
-              vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
-            end
-
-            -- Jump to the definition of the word under your cursor.
-            --  This is where a variable was first declared, or where a function is defined, etc.
-            --  To jump back, press <C-t>.
-            map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
-
-            -- Find references for the word under your cursor.
-            map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-
-            -- Jump to the implementation of the word under your cursor.
-            --  Useful when your language has ways of declaring types without an actual implementation.
-            map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-
-            -- Jump to the type of the word under your cursor.
-            --  Useful when you're not sure what type a variable is and you want to see
-            --  the definition of its *type*, not where it was *defined*.
-            map('<leader>ld', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
-
-            -- Fuzzy find all the symbols in your current document.
-            --  Symbols are things like variables, functions, types, etc.
-            map('<leader>lsd', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-
-            -- Fuzzy find all the symbols in your current workspace.
-            --  Similar to document symbols, except searches over your entire project.
-            map('<leader>lsw', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
-
-            -- Rename the variable under your cursor.
-            --  Most Language Servers support renaming across files, etc.
-            map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-
-            -- Execute a code action, usually your cursor needs to be on top of an error
-            -- or a suggestion from your LSP for this to activate.
-            map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
-
-            -- WARN: This is not Goto Definition, this is Goto Declaration.
-            --  For example, in C this would take you to the header.
-            map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
-
-            -- The following two autocommands are used to highlight references of the
-            -- word under your cursor when your cursor rests there for a little while.
-            --    See `:help CursorHold` for information about when this is executed
-            --
-            -- When you move your cursor, the highlights will be cleared (the second autocommand).
-            local client = vim.lsp.get_client_by_id(event.data.client_id)
-            if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
-              local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
-              vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-                buffer = event.buf,
-                group = highlight_augroup,
-                callback = vim.lsp.buf.document_highlight,
-              })
-
-              vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-                buffer = event.buf,
-                group = highlight_augroup,
-                callback = vim.lsp.buf.clear_references,
-              })
-
-              vim.api.nvim_create_autocmd('LspDetach', {
-                group = vim.api.nvim_create_augroup('kickstart-lsp-detach', { clear = true }),
-                callback = function(event2)
-                  vim.lsp.buf.clear_references()
-                  vim.api.nvim_clear_autocmds { group = 'kickstart-lsp-highlight', buffer = event2.buf }
-                end,
-              })
-            end
-
-            -- The following code creates a keymap to toggle inlay hints in your
-            -- code, if the language server you are using supports them
-            --
-            -- This may be unwanted, since they displace some of your code
-            if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
-              map('<leader>lt', function()
-                vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
-              end, '[T]oggle Inlay [H]ints')
-            end
-          end,
+          callback = KM.plugin_lsp_config_attach,
         })
 
         -- Change diagnostic symbols in the sign column (gutter)
@@ -1635,7 +1102,7 @@ M.setup = function()
         require('mason').setup()
 
         require('mason-tool-installer').setup {
-          ensure_installed = mason_tools_keys,
+          ensure_installed = M.mason_tools_list,
         }
 
         ---@diagnostic disable-next-line: missing-fields
@@ -1644,7 +1111,7 @@ M.setup = function()
           -- ensure_installed = mason_tools_lsp_keys,
           handlers = {
             function(server_name)
-              local server = mason_tools_lsp[server_name] or {}
+              local server = M.lsp[server_name] or {}
               -- This handles overriding only values explicitly passed
               -- by the server configuration above. Useful when disabling
               -- certain features of an LSP (for example, turning off formatting for ts_ls)
@@ -1663,38 +1130,7 @@ M.setup = function()
       'folke/trouble.nvim',
       opts = {},
       cmd = 'Trouble',
-      keys = {
-        {
-          '<leader>xx',
-          '<cmd>Trouble diagnostics toggle<cr>',
-          desc = 'Diagnostics (Trouble)',
-        },
-        {
-          '<leader>xX',
-          '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
-          desc = 'Buffer Diagnostics (Trouble)',
-        },
-        {
-          '<leader>cs',
-          '<cmd>Trouble symbols toggle focus=false<cr>',
-          desc = 'Symbols (Trouble)',
-        },
-        {
-          '<leader>cl',
-          '<cmd>Trouble lsp toggle focus=false win.position=right<cr>',
-          desc = 'LSP Definitions / references / ... (Trouble)',
-        },
-        {
-          '<leader>xL',
-          '<cmd>Trouble loclist toggle<cr>',
-          desc = 'Location List (Trouble)',
-        },
-        {
-          '<leader>xQ',
-          '<cmd>Trouble qflist toggle<cr>',
-          desc = 'Quickfix List (Trouble)',
-        },
-      },
+      keys = KM.plugin_trouble,
     },
     -- LSP Hover
 
@@ -1724,89 +1160,11 @@ M.setup = function()
           -- to a :h preview-window when pressing the hover keymap.
           preview_window = false,
           title = true,
-          mouse_providers = {
-            'LSP',
-          },
+          mouse_providers = { 'LSP' },
           mouse_delay = 1000,
         }
-
-        -- Setup keymaps
-        vim.keymap.set('n', 'K', function(_)
-          local winid = require('ufo').peekFoldedLinesUnderCursor()
-          if not winid then
-            require('hover').hover(_)
-          end
-        end, { desc = 'hover.nvim' })
-
-        vim.keymap.set('n', 'gK', function(_)
-          local winid = require('ufo').peekFoldedLinesUnderCursor()
-          if not winid then
-            require('hover').hover_select(_)
-          end
-        end, { desc = 'hover.nvim' })
-
-        -- vim.keymap.set('n', 'gK', require('hover').hover_select, { desc = 'hover.nvim (select)' })
-
-        vim.keymap.set('n', '<C-p>', function()
-          require('hover').hover_switch 'previous'
-        end, { desc = 'hover.nvim (previous source)' })
-
-        vim.keymap.set('n', '<C-n>', function()
-          require('hover').hover_switch 'next'
-        end, { desc = 'hover.nvim (next source)' })
-
-        -- Mouse support
-        vim.keymap.set('n', '<MouseMove>', require('hover').hover_mouse, { desc = 'hover.nvim (mouse)' })
+        KM.plugin_hover()
         vim.o.mousemoveevent = true
-      end,
-    },
-
-    -- LSP Enhance
-    {
-      'nvimdev/lspsaga.nvim',
-      enabled = false,
-      -- event = 'LspAttach',
-      dependencies = {
-        'nvim-treesitter/nvim-treesitter', -- optional
-        'nvim-tree/nvim-web-devicons', -- optional
-      },
-      config = function()
-        -- Options: https://github.com/nvimdev/lspsaga.nvim/blob/main/lua/lspsaga/init.lua
-
-        require('lspsaga').setup {
-          hover = {
-            max_width = 0.9,
-            max_height = 0.8,
-            open_link = 'gx',
-            open_cmd = '!chrome',
-          },
-          symbol_in_winbar = {
-            enable = false,
-            hide_keyword = true,
-            show_file = false,
-          },
-          lightbulb = {
-            enable = true,
-          },
-        }
-
-        vim.keymap.set('n', 'K', '<CMD>Lspsaga hover_doc<CR>')
-        vim.keymap.set('n', '\\', '<CMD>Lspsaga hover_doc<CR>')
-
-        -- local hover = require 'lspsaga.hover'
-        -- local hover_visible = false
-        --
-        -- vim.keymap.set({ 'n', 'i', 'v' }, '<C-LeftMouse>', function()
-        --   hover_visible = true
-        --   hover.render_hover_doc {}
-        -- end, { noremap = false })
-        --
-        -- vim.keymap.set({ 'n', 'i', 'v' }, '<LeftMouse>', function()
-        --   if hover_visible then
-        --     hover_visible = false
-        --     hover.render_hover_doc {}
-        --   end
-        -- end, { noremap = false })
       end,
     },
 
@@ -1821,13 +1179,7 @@ M.setup = function()
           panel = {
             enabled = true,
             auto_refresh = false,
-            keymap = {
-              jump_prev = '[[',
-              jump_next = ']]',
-              accept = '<CR>',
-              refresh = 'gr',
-              open = '<M-CR>',
-            },
+            keymap = KM.plugin_copilot.panel,
             layout = {
               position = 'bottom', -- | top | left | right | horizontal | vertical
               ratio = 0.4,
@@ -1838,14 +1190,7 @@ M.setup = function()
             auto_trigger = true,
             hide_during_completion = true,
             debounce = 75,
-            keymap = {
-              accept = '<C-CR>',
-              accept_word = false,
-              accept_line = false,
-              next = '<C-d>',
-              prev = '<C-u>',
-              dismiss = '<C-Space>',
-            },
+            keymap = KM.plugin_copilot.suggestion,
           },
           filetypes = {
             -- yaml = false,
@@ -1965,57 +1310,7 @@ M.setup = function()
           -- chosen, you will need to read `:help ins-completion`
           --
           -- No, but seriously. Please read `:help ins-completion`, it is really good!
-          mapping = cmp.mapping.preset.insert {
-            -- Close completion when you hit <esc>
-            ['<Esc>'] = cmp.mapping.close(),
-            -- Select the [n]ext item
-            ['<C-n>'] = cmp.mapping.select_next_item(),
-            -- Select the [p]revious item
-            ['<C-p>'] = cmp.mapping.select_prev_item(),
-
-            -- Scroll the documentation window [b]ack / [f]orward
-            ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-            ['<C-f>'] = cmp.mapping.scroll_docs(4),
-
-            -- Accept ([y]es) the completion.
-            --  This will auto-import if your LSP supports it.
-            --  This will expand snippets if the LSP sent a snippet.
-            ['<C-y>'] = cmp.mapping.confirm { select = true },
-            ['<tab>'] = cmp.mapping.confirm { select = true },
-
-            -- If you prefer more traditional completion keymaps,
-            -- you can uncomment the following lines
-            --['<CR>'] = cmp.mapping.confirm { select = true },
-            --['<Tab>'] = cmp.mapping.select_next_item(),
-            --['<S-Tab>'] = cmp.mapping.select_prev_item(),
-
-            -- Manually trigger a completion from nvim-cmp.
-            --  Generally you don't need this, because nvim-cmp will display
-            --  completions whenever it has completion options available.
-            ['<C-Space>'] = cmp.mapping.complete {},
-
-            -- Think of <c-l> as moving to the right of your snippet expansion.
-            --  So if you have a snippet that's like:
-            --  function $name($args)
-            --    $body
-            --  end
-            --
-            -- <c-l> will move you to the right of each of the expansion locations.
-            -- <c-h> is similar, except moving you backwards.
-            ['<C-l>'] = cmp.mapping(function()
-              if luasnip.expand_or_locally_jumpable() then
-                luasnip.expand_or_jump()
-              end
-            end, { 'i', 's' }),
-            ['<C-h>'] = cmp.mapping(function()
-              if luasnip.locally_jumpable(-1) then
-                luasnip.jump(-1)
-              end
-            end, { 'i', 's' }),
-
-            -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
-            --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
-          },
+          mapping = cmp.mapping.preset.insert(KM.plugin_cmp()),
           sources = {
             {
               name = 'lazydev',
@@ -2086,9 +1381,6 @@ M.setup = function()
       lazy = '💤 ',
     }
 
-  ----------------------------------------------------------------
-  --  NOTE:  Plugin Variables
-  ----------------------------------------------------------------
   require('lazy').setup({
     plugins_overrides,
     plugins_qol,
