@@ -156,25 +156,50 @@ M.formatters = {
 }
 
 ---------------------------------
--- S: Plugins List
+-- S: Plugins: Nvim (the core of Neovim)
 ---------------------------------
 
-local plugins_overrides = {
-  -- Input & Select
+---@type LazySpec[]
+local plugins_nvim_overrides = {
+  -- Override: Vim Print & Debug
   {
-    'stevearc/dressing.nvim',
-    opts = {},
+    'folke/snacks.nvim',
+    priority = 1000,
+    lazy = false,
+    ---@type snacks.Config
+    opts = {
+      debug = { enabled = true },
+    },
+    init = function()
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'VeryLazy',
+        callback = function()
+          local Snacks = require 'snacks'
+
+          -- Setup some globals for debugging (lazy-loaded)
+          _G.dd = function(...)
+            Snacks.debug.inspect(...)
+          end
+
+          _G.bt = function()
+            Snacks.debug.backtrace()
+          end
+
+          vim.print = _G.dd -- Override print to use snacks for `:=` command
+        end,
+      })
+    end,
   },
 }
 
-local plugins_qol = {
-  -- Session management
+---@type LazySpec[]
+local plugins_nvim_main = {
+  -- Sessions
   {
     'rmagatti/auto-session',
     lazy = false,
     dependencies = {},
     keys = KM.plugin_autosession.keys,
-    ---enables autocomplete for opts
     ---@module "auto-session"
     ---@type function|AutoSession.Config
     opts = function()
@@ -252,7 +277,8 @@ local plugins_qol = {
       }
     end,
   },
-  -- Telescope: Fuzzy Finder
+
+  -- Select & Fuzzy Finder
   {
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
@@ -362,7 +388,10 @@ local plugins_qol = {
       end, { desc = '[S]earch [N]eovim files' })
     end,
   },
+}
 
+---@type LazySpec[]
+local plugins_nvim_qol = {
   -- Whichkey
   {
     'folke/which-key.nvim',
@@ -413,10 +442,10 @@ local plugins_qol = {
     },
   },
 
-  -- Main window padding
+  -- Window padding
   {
     'shortcuts/no-neck-pain.nvim',
-    enabled = C.plugins.no_neck_pain,
+    enabled = C.plugins.no_neck_pain.enabled,
     lazy = false,
     keys = KM.plugin_no_neck_pain,
     opts = {
@@ -443,110 +472,32 @@ local plugins_qol = {
   },
 }
 
-local plugins_bundles = {
-  -- Mini
-  {
-    'echasnovski/mini.nvim',
-    config = function()
-      -- Autoclose pairs
-      require('mini.pairs').setup {
-        -- In which modes mappings from this `config` should be created
-        modes = { insert = true, command = false, terminal = false },
-        -- Global mappings. Each right hand side should be a pair information, a
-        -- table with at least these fields (see more in |MiniPairs.map|):
-        -- - <action> - one of 'open', 'close', 'closeopen'.
-        -- - <pair> - two character string for pair to be used.
-        -- By default pair is not inserted after `\`, quotes are not recognized by
-        -- `<CR>`, `'` does not insert pair after a letter.
-        -- Only parts of tables can be tweaked (others will use these defaults).
-        mappings = {
-          ['('] = { action = 'open', pair = '()', neigh_pattern = '[^\\].' },
-          ['['] = { action = 'open', pair = '[]', neigh_pattern = '[^\\].' },
-          ['{'] = { action = 'open', pair = '{}', neigh_pattern = '[^\\].' },
-
-          [')'] = { action = 'close', pair = '()', neigh_pattern = '[^\\].' },
-          [']'] = { action = 'close', pair = '[]', neigh_pattern = '[^\\].' },
-          ['}'] = { action = 'close', pair = '{}', neigh_pattern = '[^\\].' },
-
-          ['"'] = { action = 'closeopen', pair = '""', neigh_pattern = '[^\\].', register = { cr = false } },
-          ["'"] = { action = 'closeopen', pair = "''", neigh_pattern = '[^%a\\].', register = { cr = false } },
-          ['`'] = { action = 'closeopen', pair = '``', neigh_pattern = '[^\\].', register = { cr = false } },
-        },
-      }
-
-      -- Better Around/Inside textobjects
-      -- Examples:
-      --  - va)  - [V]isually select [A]round [)]paren
-      --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
-      --  - ci'  - [C]hange [I]nside [']quote
-      require('mini.ai').setup { n_lines = 500 }
-
-      -- Add/delete/replace surroundings (brackets, quotes, etc.)
-      -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
-      -- - sd'   - [S]urround [D]elete [']quotes
-      -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup()
-    end,
-  },
-
-  -- Snacks
+---@type LazySpec[]
+local plugins_nvim_snacks = {
+  -- Buffers, LazyGit, Scope, Words, Toggle
   {
     'folke/snacks.nvim',
-    priority = 1000,
-    lazy = false,
     keys = KM.plugin_snacks.keys,
     ---@type snacks.Config
     opts = {
-      input = { enabled = false },
-      quickfile = { enabled = false },
-      dashboard = { enabled = false },
-      indent = { enabled = false },
-      bigfile = { enabled = false },
-      -- Enabled
       bufdelete = { enabled = true },
-      debug = { enabled = true },
       lazygit = { enabled = true },
-      ---@class snacks.scroll.Config
-      -- scroll = {
-      --   spamming = 10, -- threshold for spamming detection
-      --   animate = { duration = { step = 10, total = 250 }, easing = 'outSine' },
-      -- },
       scope = { enabled = true },
-      statuscolumn = { enabled = true },
       words = { enabled = true },
       toggle = { enabled = true },
-      notifier = {
-        enabled = true,
-        timeout = 3000,
-      },
-      styles = {
-        notification = {
-          -- wo = { wrap = true } -- Wrap notifications
-        },
-      },
     },
     init = function()
-      vim.api.nvim_create_autocmd('User', {
-        pattern = 'VeryLazy',
-        callback = function()
-          local Snacks = require 'snacks'
-          -- Setup some globals for debugging (lazy-loaded)
-          _G.dd = function(...)
-            Snacks.debug.inspect(...)
-          end
-          _G.bt = function()
-            Snacks.debug.backtrace()
-          end
-          vim.print = _G.dd -- Override print to use snacks for `:=` command
-
-          KM.plugin_snacks.setup()
-        end,
-      })
+      KM.plugin_snacks.setup()
     end,
   },
 }
 
-local plugins_themes = {
+---------------------------------
+-- S: Plugins: UI (the user-interface of Neovim)
+---------------------------------
+
+---@type LazySpec[]
+local plugins_ui_themes = {
   { 'ramojus/mellifluous.nvim' },
   { 'rose-pine/neovim', name = 'rose-pine' },
   { 'vague2k/vague.nvim' },
@@ -665,7 +616,26 @@ local plugins_themes = {
   },
 }
 
-local plugins_bars = {
+---@type LazySpec[]
+local plugins_ui_customization = {
+  -- Vim Input & Notifications & Status Column
+  {
+    'folke/snacks.nvim',
+    ---@type snacks.Config
+    opts = {
+      input = {
+        enabled = true,
+      },
+      statuscolumn = {
+        enabled = true,
+      },
+      notifier = {
+        enabled = true,
+        timeout = 3000,
+      },
+    },
+  },
+
   -- Menu
   { 'nvzone/volt', lazy = true },
   { 'nvzone/menu', lazy = true, keys = KM.plugin_nvzone_menu },
@@ -756,7 +726,158 @@ local plugins_bars = {
   },
 }
 
-local plugins_editor = {
+---@type LazySpec[]
+local plugins_bundles = {
+  -- Mini
+  {
+    'echasnovski/mini.nvim',
+    config = function()
+      -- Autoclose pairs
+      require('mini.pairs').setup {
+        -- In which modes mappings from this `config` should be created
+        modes = { insert = true, command = false, terminal = false },
+        -- Global mappings. Each right hand side should be a pair information, a
+        -- table with at least these fields (see more in |MiniPairs.map|):
+        -- - <action> - one of 'open', 'close', 'closeopen'.
+        -- - <pair> - two character string for pair to be used.
+        -- By default pair is not inserted after `\`, quotes are not recognized by
+        -- `<CR>`, `'` does not insert pair after a letter.
+        -- Only parts of tables can be tweaked (others will use these defaults).
+        mappings = {
+          ['('] = { action = 'open', pair = '()', neigh_pattern = '[^\\].' },
+          ['['] = { action = 'open', pair = '[]', neigh_pattern = '[^\\].' },
+          ['{'] = { action = 'open', pair = '{}', neigh_pattern = '[^\\].' },
+
+          [')'] = { action = 'close', pair = '()', neigh_pattern = '[^\\].' },
+          [']'] = { action = 'close', pair = '[]', neigh_pattern = '[^\\].' },
+          ['}'] = { action = 'close', pair = '{}', neigh_pattern = '[^\\].' },
+
+          ['"'] = { action = 'closeopen', pair = '""', neigh_pattern = '[^\\].', register = { cr = false } },
+          ["'"] = { action = 'closeopen', pair = "''", neigh_pattern = '[^%a\\].', register = { cr = false } },
+          ['`'] = { action = 'closeopen', pair = '``', neigh_pattern = '[^\\].', register = { cr = false } },
+        },
+      }
+
+      -- Better Around/Inside textobjects
+      -- Examples:
+      --  - va)  - [V]isually select [A]round [)]paren
+      --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
+      --  - ci'  - [C]hange [I]nside [']quote
+      require('mini.ai').setup { n_lines = 500 }
+
+      -- Add/delete/replace surroundings (brackets, quotes, etc.)
+      -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
+      -- - sd'   - [S]urround [D]elete [']quotes
+      -- - sr)'  - [S]urround [R]eplace [)] [']
+      require('mini.surround').setup()
+    end,
+  },
+}
+
+---------------------------------
+-- S: Plugins: Editor (when code is being written))
+---------------------------------
+
+---@type LazySpec[]
+local plugins_editor_indicators = {
+  -- Gitsigns
+  {
+    'lewis6991/gitsigns.nvim',
+    opts = {
+      signs = {
+        add = { text = '┃' },
+        change = { text = '┃' },
+        delete = { text = '_' },
+        topdelete = { text = '‾' },
+        changedelete = { text = '~' },
+        untracked = { text = '┆' },
+      },
+      signs_staged = {
+        add = { text = '┃' },
+        change = { text = '┃' },
+        delete = { text = '_' },
+        topdelete = { text = '‾' },
+        changedelete = { text = '~' },
+        untracked = { text = '┆' },
+      },
+      signs_staged_enable = true,
+      on_attach = function(bufnr)
+        KM.plugin_gitsigns(bufnr)
+        vim.cmd [[
+            highlight GitSignsAdd    guifg=green        guibg=NONE
+            highlight GitSignsChange guifg=darkyellow   guibg=NONE
+            highlight GitSignsDelete guifg=red          guibg=NONE
+          ]]
+      end,
+    },
+  },
+}
+
+---@type LazySpec[]
+local plugins_editor_navigation = {
+  -- Navigation
+  {
+    'ggandor/leap.nvim',
+    lazy = false,
+    dependencies = { 'tpope/vim-repeat' },
+    config = function()
+      KM.plugin_leap()
+    end,
+  },
+
+  -- Jumplists & Bookmarks
+  {
+    'otavioschwanck/arrow.nvim',
+    dependencies = {
+      { 'nvim-tree/nvim-web-devicons' },
+      -- or if using `mini.icons`
+      -- { "echasnovski/mini.icons" },
+    },
+    opts = {
+      show_icons = true,
+      leader_key = KM.plugin_arrow.leader,
+      buffer_leader_key = KM.plugin_arrow.leader_buffer,
+    },
+  },
+
+  -- Buffers, Marks, Jumps
+  {
+    'gcmt/vessel.nvim',
+    config = function()
+      require('vessel').setup {
+        create_commands = true,
+        commands = { -- not required unless you want to customize each command name
+          view_marks = 'Marks',
+          view_jumps = 'Jumps',
+          view_buffers = 'Buffers',
+        },
+      }
+      local vessel = require 'vessel'
+      vessel.opt.buffers.view = 'tree'
+    end,
+  },
+
+  -- Files: NvimTree
+  {
+    'nvim-tree/nvim-tree.lua',
+    version = '*',
+    lazy = false,
+    dependencies = {
+      'nvim-tree/nvim-web-devicons',
+    },
+    keys = KM.plugin_nvim_tree,
+    config = function()
+      require('nvim-tree').setup {}
+    end,
+  },
+}
+
+---------------------------------
+-- S: Plugins: Coding (the code itself)
+---------------------------------
+
+---@type LazySpec[]
+local plugins_coding = {
   -- Detect tabstop and shiftwidth
   'tpope/vim-sleuth',
 
@@ -829,101 +950,10 @@ local plugins_editor = {
       KM.plugin_multicursor()
     end,
   },
-
-  -- Navigation
-  {
-    'ggandor/leap.nvim',
-    lazy = false,
-    dependencies = { 'tpope/vim-repeat' },
-    config = function()
-      KM.plugin_leap()
-    end,
-  },
 }
 
-local plugins_editor_navigation = {
-  -- Jumplists & Bookmarks
-  {
-    'otavioschwanck/arrow.nvim',
-    dependencies = {
-      { 'nvim-tree/nvim-web-devicons' },
-      -- or if using `mini.icons`
-      -- { "echasnovski/mini.icons" },
-    },
-    opts = {
-      show_icons = true,
-      leader_key = KM.plugin_arrow.leader,
-      buffer_leader_key = KM.plugin_arrow.leader_buffer,
-    },
-  },
-
-  -- Buffers, Marks, Jumps
-  {
-    'gcmt/vessel.nvim',
-    config = function()
-      require('vessel').setup {
-        create_commands = true,
-        commands = { -- not required unless you want to customize each command name
-          view_marks = 'Marks',
-          view_jumps = 'Jumps',
-          view_buffers = 'Buffers',
-        },
-      }
-      local vessel = require 'vessel'
-      vessel.opt.buffers.view = 'tree'
-    end,
-  },
-
-  -- Files: NvimTree
-  {
-    'nvim-tree/nvim-tree.lua',
-    version = '*',
-    lazy = false,
-    dependencies = {
-      'nvim-tree/nvim-web-devicons',
-    },
-    keys = KM.plugin_nvim_tree,
-    config = function()
-      require('nvim-tree').setup {}
-    end,
-  },
-}
-
-local plugins_editor_indicators = {
-  -- Gitsigns
-  {
-    'lewis6991/gitsigns.nvim',
-    opts = {
-      signs = {
-        add = { text = '┃' },
-        change = { text = '┃' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
-        changedelete = { text = '~' },
-        untracked = { text = '┆' },
-      },
-      signs_staged = {
-        add = { text = '┃' },
-        change = { text = '┃' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
-        changedelete = { text = '~' },
-        untracked = { text = '┆' },
-      },
-      signs_staged_enable = true,
-      on_attach = function(bufnr)
-        KM.plugin_gitsigns(bufnr)
-        vim.cmd [[
-            highlight GitSignsAdd    guifg=green        guibg=NONE
-            highlight GitSignsChange guifg=darkyellow   guibg=NONE
-            highlight GitSignsDelete guifg=red          guibg=NONE
-          ]]
-      end,
-    },
-  },
-}
-
-local plugins_editor_languages = {
+---@type LazySpec[]
+local plugins_coding_languages = {
 
   -- S: Editor: Formatting
 
@@ -1351,10 +1381,31 @@ local plugins_editor_languages = {
 }
 
 ---------------------------------
--- S: Plugin Manager
+---S: Plugins Initialize
 ---------------------------------
 
 M.setup = function()
+  M.lazy_setup {
+    plugins_nvim_overrides,
+    plugins_nvim_main,
+    plugins_nvim_qol,
+    plugins_nvim_snacks,
+    plugins_ui_themes,
+    plugins_ui_customization,
+    plugins_bundles,
+    plugins_editor_indicators,
+    plugins_editor_navigation,
+    plugins_coding,
+    plugins_coding_languages,
+  }
+end
+
+---------------------------------
+-- S: Plugin Manager
+---------------------------------
+
+--@param plugins LazySpec[]
+M.lazy_setup = function(plugins)
   --  Manager (lazy.nvim)
   --   1. `:Lazy` to check status of plugins, press `?` for help in the menu and `:q` to close
   --   2. `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
@@ -1387,18 +1438,8 @@ M.setup = function()
       lazy = '💤 ',
     }
 
-  require('lazy').setup({
-    plugins_overrides,
-    plugins_qol,
-    plugins_bundles,
-    plugins_themes,
-    plugins_bars,
-    plugins_editor,
-    plugins_editor_navigation,
-    plugins_editor_indicators,
-    plugins_editor_languages,
-    ---@diagnostic disable-next-line: missing-fields
-  }, {
+  ---@diagnostic disable-next-line: missing-fields
+  require('lazy').setup(plugins, {
     ui = {
       -- If you are using a Nerd Font: set icons to an empty table which will use the
       -- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
