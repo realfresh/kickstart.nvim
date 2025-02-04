@@ -207,6 +207,9 @@ M.plugin_nvzone_menu = {
 }
 
 M.plugin_tabby = {
+  { mode = 'n', '<C-[>', ':tabp<CR>', desc = 'Tab: Previous' },
+  { mode = 'n', '<C-]>', ':tabp<CR>', desc = 'Tab: Next' },
+  -- Leader mappings
   { mode = 'n', '<leader><tab>n', ':$tabnew<CR>', desc = 'Tab: New' },
   { mode = 'n', '<leader><tab>q', ':tabclose<CR>', desc = 'Tab: Close' },
   { mode = 'n', '<leader><tab>o', ':tabonly<CR>', desc = 'Tab: Only' },
@@ -473,6 +476,15 @@ M.plugin_multicursor = function()
   set({ 'v', 'n' }, '<c-o>', mc.jumpBackward)
 end
 
+--stylua: ignore
+M.plugin_flash = {
+  { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
+  { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
+  -- { "r", mode = "o", function() require("flash").remote() end, desc = "Remote Flash" },
+  { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter Search" },
+  { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
+}
+
 M.plugin_leap = function()
   -- require('leap').create_default_mappings()
   set({ 'n', 'x', 'o' }, 'gl', '<Plug>(leap-forward)', { desc = 'Leap: Forward' })
@@ -497,6 +509,19 @@ M.plugin_nvim_tree = {
   },
 }
 
+M.plugin_neotree = function()
+  set({ 'n' }, '<leader>1', function()
+    require('neo-tree.command').execute { toggle = true, dir = vim.uv.cwd() }
+  end, { desc = 'Explorer NeoTree (cwd)' })
+
+  set({ 'n' }, '<leader>2', function()
+    require('neo-tree.command').execute { source = 'git_status', toggle = true }
+  end, { desc = 'Git Explorer' })
+
+  set({ 'n' }, '<leader>3', function()
+    require('neo-tree.command').execute { source = 'buffers', toggle = true }
+  end, { desc = 'Buffer Explorer' })
+end
 ---------------------------------
 -- S: Plugins: Code & LSP
 ---------------------------------
