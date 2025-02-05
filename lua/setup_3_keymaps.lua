@@ -511,15 +511,27 @@ M.plugin_nvim_tree = {
 
 M.plugin_neotree = function()
   set({ 'n' }, '<leader>1', function()
-    require('neo-tree.command').execute { toggle = true, dir = vim.uv.cwd() }
+    require('neo-tree.command').execute {
+      dir = vim.uv.cwd(),
+      toggle = true,
+      position = 'float',
+    }
   end, { desc = 'Explorer NeoTree (cwd)' })
 
   set({ 'n' }, '<leader>2', function()
-    require('neo-tree.command').execute { source = 'git_status', toggle = true }
+    require('neo-tree.command').execute {
+      toggle = true,
+      position = 'float',
+      source = 'git_status',
+    }
   end, { desc = 'Git Explorer' })
 
   set({ 'n' }, '<leader>3', function()
-    require('neo-tree.command').execute { source = 'buffers', toggle = true }
+    require('neo-tree.command').execute {
+      toggle = true,
+      position = 'float',
+      source = 'buffers',
+    }
   end, { desc = 'Buffer Explorer' })
 end
 ---------------------------------

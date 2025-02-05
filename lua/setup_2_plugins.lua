@@ -939,31 +939,33 @@ local plugins_editor_navigation = {
     opts = {
       sources = { 'filesystem', 'buffers', 'git_status' },
       open_files_do_not_replace_types = { 'terminal', 'Trouble', 'trouble', 'qf', 'Outline' },
+      hide_root_node = true,
+      retain_hidden_root_indent = true,
+      enable_git_status = true,
+      enable_diagnostics = true,
+      popup_border_style = 'rounded',
       filesystem = {
         bind_to_cwd = false,
-        follow_current_file = { enabled = true },
+        follow_current_file = {
+          enabled = true,
+          leave_dirs_open = true,
+        },
         use_libuv_file_watcher = true,
-      },
-      window = {
-        mappings = {
-          ['l'] = 'open',
-          ['h'] = 'close_node',
-          ['<space>'] = 'none',
-          ['Y'] = {
-            function(state)
-              local node = state.tree:get_node()
-              local path = node:get_id()
-              vim.fn.setreg('+', path, 'c')
-            end,
-            desc = 'Copy Path to Clipboard',
+        filtered_items = {
+          never_show = {
+            '.DS_Store',
           },
-          ['O'] = {
-            function(state)
-              require('lazy.util').open(state.tree:get_node().path, { system = true })
-            end,
-            desc = 'Open with System Application',
+          hide_dotfiles = false,
+          hide_gitignored = true,
+          hide_by_name = {
+            'node_modules',
           },
-          ['P'] = { 'toggle_preview', config = { use_float = false } },
+          hide_by_pattern = {
+            --"*.meta",
+            --"*/src/*/tsconfig.json",
+          },
+          never_show_by_pattern = {},
+          always_show_by_pattern = {},
         },
       },
       default_component_configs = {
@@ -975,12 +977,91 @@ local plugins_editor_navigation = {
         },
         git_status = {
           symbols = {
+            -- Change type
+            added = '✚', -- or "✚", but this is redundant info if you use git_status_colors on the name
+            modified = '', -- or "", but this is redundant info if you use git_status_colors on the name
+            deleted = '✖', -- this can only be used in the git_status source
+            renamed = '󰁕', -- this can only be used in the git_status source
+            -- Status type
+            untracked = '',
+            ignored = '',
             unstaged = '󰄱',
-            staged = '󰱒',
+            staged = '',
+            conflict = '',
+          },
+        },
+        modified = {
+          symbol = '[+]',
+          highlight = 'NeoTreeModified',
+        },
+        file_size = {
+          enabled = false,
+          width = 12, -- width of the column
+          required_width = 64, -- min width of window required to show this column
+        },
+      },
+      nesting_rules = {},
+      window = {
+        mappings = {
+          ['l'] = 'open',
+          ['h'] = 'close_node',
+          ['Y'] = {
+            function(state)
+              local node = state.tree:get_node()
+              local path = node:get_id()
+              vim.fn.setreg('+', path, 'c')
+            end,
+            desc = 'Copy Path to Clipboard',
+          },
+          ['P'] = { 'toggle_preview', config = { use_float = false } },
+        },
+      },
+      buffers = {
+        follow_current_file = {
+          enabled = true, -- This will find and focus the file in the active buffer every time
+          --              -- the current file is changed while the tree is open.
+          leave_dirs_open = false, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
+        },
+        group_empty_dirs = true, -- when true, empty folders will be grouped together
+        show_unloaded = true,
+        window = {
+          mappings = {
+            ['bd'] = 'buffer_delete',
+            ['<bs>'] = 'navigate_up',
+            ['.'] = 'set_root',
+            ['o'] = { 'show_help', nowait = false, config = { title = 'Order by', prefix_key = 'o' } },
+            ['oc'] = { 'order_by_created', nowait = false },
+            ['od'] = { 'order_by_diagnostics', nowait = false },
+            ['om'] = { 'order_by_modified', nowait = false },
+            ['on'] = { 'order_by_name', nowait = false },
+            ['os'] = { 'order_by_size', nowait = false },
+            ['ot'] = { 'order_by_type', nowait = false },
+          },
+        },
+      },
+      git_status = {
+        window = {
+          position = 'float',
+          mappings = {
+            ['A'] = 'git_add_all',
+            ['gu'] = 'git_unstage_file',
+            ['ga'] = 'git_add_file',
+            ['gr'] = 'git_revert_file',
+            ['gc'] = 'git_commit',
+            ['gp'] = 'git_push',
+            ['gg'] = 'git_commit_and_push',
+            ['o'] = { 'show_help', nowait = false, config = { title = 'Order by', prefix_key = 'o' } },
+            ['oc'] = { 'order_by_created', nowait = false },
+            ['od'] = { 'order_by_diagnostics', nowait = false },
+            ['om'] = { 'order_by_modified', nowait = false },
+            ['on'] = { 'order_by_name', nowait = false },
+            ['os'] = { 'order_by_size', nowait = false },
+            ['ot'] = { 'order_by_type', nowait = false },
           },
         },
       },
     },
+
     init = function()
       KM.plugin_neotree()
     end,
